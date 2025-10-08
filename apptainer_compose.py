@@ -4,16 +4,17 @@ import argparse
 import subprocess
 import sys
 from dataclasses import dataclass
+from collections.abc import Iterator
 
 
-class Command:
+class ComposeService:
 
     def __init__(self):
-        self.image = None
-        self.command = None
-        self.volumes = []
+        self.image: str = None
+        self.command: list[str] = None
+        self.volumes: list[list[str]] = []
 
-    def to_list(self):
+    def to_list(self) -> list[str]:
         if self.command:
             return [
                 "apptainer",
@@ -27,19 +28,25 @@ class Command:
                 self.image,
             ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return " ".join(self.to_list())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
+
+
+class Compose:
+
+    def __init__(self):
+        self.compose_services: dict[str, ComposeService] = {}
 
 
 class LineReader:
 
     def __init__(self, file_path):
-        self.n = None
-        self.line = None
-        self.generator = self.create_generator(file_path)
+        self.n: int = None
+        self.line: str = None
+        self.generator: Iterator[str] = self.create_generator(file_path)
 
     def create_generator(self, file_path):
         with open(file_path, "r") as f:
@@ -66,14 +73,14 @@ class LineReader:
         except:
             self.line = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.n}: {self.line}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
 
-def validate_string(s, additional_chars=None):
+def validate_string(s: str, additional_chars: list[str]=None) -> str:
     if additional_chars is None:
         additional_chars = []
     for invalid_char in [" ", ": "] + additional_chars:
@@ -82,7 +89,7 @@ def validate_string(s, additional_chars=None):
     return s
 
 
-def get_key_and_potential_value(s):
+def get_key_and_potential_value(s: str) -> str:
     key = None
     value = None
     if s[-1] == ":":
@@ -96,7 +103,7 @@ def get_key_and_potential_value(s):
     return key, value
 
 
-def parse_volumes(lr: LineReader, c: Command):
+def parse_volumes(lr: LineReader, c: ComposeService):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:6] == "      " and lr.line[6] == "-":
@@ -112,50 +119,50 @@ def parse_volumes(lr: LineReader, c: Command):
     return c
 
 
-def state_individual_service(lr: LineReader, c: Command):
+def state_individual_service(lr: LineReader) -> ComposeService:
+    cs = ComposeService
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:4] == "    " and lr.line[4] != " ":
             key, value = get_key_and_potential_value(lr.line[4:])
             if key == "image":
-                c.image = "docker://" + validate_string(value)
+                cs.image = "docker://" + validate_string(value)
             elif key == "command":
-                if c.command is not None:
+                if cs.command is not None:
                     raise Exception("invalid")
-                c.command = value.split(" ")
+                cs.command = value.split(" ")
             elif key == "volumes":
                 if value is None:
-                    c = parse_volumes(lr, c)
+                    cs = parse_volumes(lr, cs)
                 continue
         lr.move_to_next_line()
-    return c
+    return cs
 
 
-def state_several_services(lr: LineReader, c: Command):
+def state_root_services(lr: LineReader, c: Compose) -> Compose:
     lr.move_to_next_line()
     while lr.line is not None:
-        if not (lr.line[:2] == "  " and lr.line[2] != " "):
-            raise Exception("invalid")
-        else:
+        if lr.line[:2] == "  " and lr.line[2] != " ":
             service_name, value = get_key_and_potential_value(lr.line[2:])
             if value is not None:
                 raise Exception("invalid")
             else:
-                c = state_individual_service(lr, c)
+                c.compose_services[service_name] = state_individual_service(lr)
         lr.move_to_next_line()
     return c
 
 
-def state_start(lr: LineReader, c: Command):
+def state_start(lr: LineReader) -> Compose:
+    c = Compose()
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line.startswith("services:"):
-            c = state_several_services(lr, c)
+            state_root_services(lr, c)
         lr.move_to_next_line()
     return c
 
 
-def parse():
+def parse() -> Compose:
     parser = argparse.ArgumentParser(prog="apptainer_compose.py", description="Apptainer Compose")
     parser.add_argument("-f", "--file", help="file")
 
@@ -169,19 +176,21 @@ def parse():
     print(f"COMMAND: {args.COMMAND}")
     print(f"file: {args.file}")
 
-    return state_start(LineReader(args.file), Command())
+    return state_start(LineReader(args.file))
 
 
-def execute(cmd_list):
+def execute(cmd_list: list[str]):
     result = subprocess.run(cmd_list)
     sys.exit(result.returncode)
 
 
 def main():
     c = parse()
-    print(c.to_list())
-    print(c)
-    execute(c.to_list())
+    for cs_name, cs in c.compose_services.items():
+        print(cs_name)
+        print(cs.to_list())
+        print(cs)
+        execute(cs.to_list())
 
 
 if __name__ == "__main__":
