@@ -1,7 +1,7 @@
 import os
 import sys
 
-from apptainer_compose import parse
+from apptainer_compose import parse, ParsingError
 
 tests_target_list = [
     ("invalid_1", None),
@@ -30,8 +30,10 @@ def main_test():
                     sys.argv = line.split()
             try:
                 print(f"{sys.argv=}")
-                parsed_command = str(parse())
-            except Exception as ex:
+                c = parse()
+                cs = list(c.compose_services.values())[0]
+                parsed_command = str(cs)
+            except ParsingError as ex:
                 print(ex)
                 parsed_command = None
             print(f"{parsed_command=}")
