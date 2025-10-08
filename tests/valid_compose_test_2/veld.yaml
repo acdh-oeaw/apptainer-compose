@@ -1,5 +1,0 @@
-
-services:
-  compose_test_1:
-    image: alpine:latest
-    command: echo "hey"

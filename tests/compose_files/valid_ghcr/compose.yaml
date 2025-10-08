@@ -1,0 +1,5 @@
+
+services:
+  valid_compose_github:
+    image: ghcr.io/linuxcontainers/alpine:latest
+    command: echo "valid_ghcr"

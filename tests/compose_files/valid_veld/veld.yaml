@@ -1,0 +1,5 @@
+
+services:
+  compose_test_2:
+    image: alpine:latest
+    command: echo "compose_test_2"

@@ -9,6 +9,7 @@ from dataclasses import dataclass
 class Command:
     image = None
     command = None
+    volumes = None
 
     def to_list(self):
         if self.command:
@@ -16,8 +17,7 @@ class Command:
                 "apptainer",
                 "exec",
                 self.image,
-                self.command,
-            ]
+            ] + self.command
         else:
             return [
                 "apptainer",
@@ -32,8 +32,10 @@ class Command:
         return str(self)
 
 
-def sanitize_string(s):
-    for invalid_char in [" ", ": "]:
+def validate_string(s, additional_chars=None):
+    if additional_chars is None:
+        additional_chars = []
+    for invalid_char in [" ", ": "] + additional_chars:
         if invalid_char in s:
             raise Exception("invalid")
     return s
@@ -43,34 +45,38 @@ def get_key_and_potential_value(s):
     key = None
     value = None
     if s[-1] == ":":
-        key = sanitize_string(s[:-2])
+        key = validate_string(s[:-1], [":"])
     else:
         key_value_list = s.split(": ")
         if len(key_value_list) != 2:
             raise Exception("invalid")
-        key = sanitize_string(key_value_list[0])
+        key = validate_string(key_value_list[0])
         value = key_value_list[1].lstrip()
-        if key != "command":
-            value = sanitize_string(value)
     return key, value
 
 
-def parse_image(value):
-    return "docker://" + value
+def parse_volumes(lg, c):
+    for line in lg:
+        pass
 
 
-def parse_individual_service(lg, c):
+def state_individual_service(lg, c):
     for line in lg:
         if not (line[:4] == "    " and line[4] != " "):
             raise Exception("invalid")
         else:
             key, value = get_key_and_potential_value(line[4:])
             if key == "image":
-                c.image = parse_image(value)
+                c.image = "docker://" + validate_string(value)
+            elif key == "command":
+                c.command = value.split(" ")
+            elif key == "volumes":
+                if value is None:
+                    parse_volumes(lg, c)
     return c
 
 
-def parse_several_services(lg, c):
+def state_several_services(lg, c):
     for line in lg:
         if not (line[:2] == "  " and line[2] != " "):
             raise Exception("invalid")
@@ -79,14 +85,14 @@ def parse_several_services(lg, c):
             if value is not None:
                 raise Exception("invalid")
             else:
-                parse_individual_service(lg, c)
+                state_individual_service(lg, c)
     return c
 
 
-def parse_start(lg, c):
+def state_start(lg, c):
     for line in lg:
         if line.startswith("services:"):
-            parse_several_services(lg, c)
+            state_several_services(lg, c)
         elif line.startswith("#") or line.startswith("x-"):
             pass
     return c
@@ -95,7 +101,17 @@ def parse_start(lg, c):
 def line_generator(file):
     with open(file, "r") as f:
         for line in f.read().splitlines():
-            yield line
+            commented_line = False
+            for char in line:
+                if char == " ":
+                    continue
+                elif char == "#":
+                    commented_line = True
+                    break
+                else:
+                    break
+            if not commented_line:
+                yield line
 
 
 def parse():
@@ -112,7 +128,7 @@ def parse():
     print(f"COMMAND: {args.COMMAND}")
     print(f"file: {args.file}")
 
-    return parse_start(line_generator(args.file), Command())
+    return state_start(line_generator(args.file), Command())
 
 
 def execute(cmd_list):

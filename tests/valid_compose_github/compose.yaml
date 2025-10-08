@@ -1,5 +1,0 @@
-
-services:
-  test:
-    image: ghcr.io/linuxserver/nginx:latest
-    command: echo "hey"
