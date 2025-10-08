@@ -21,17 +21,17 @@ class ComposeService:
 
     def to_list(self) -> list[str]:
         if self.command:
-            return [
-                "apptainer",
-                "exec",
-                self.image,
-            ] + self.command
+            l = ["apptainer", "exec"]
+            for vol in self.volumes:
+                l += ["--bind", vol]
+            l += [self.image] + self.command
         else:
-            return [
+            l = [
                 "apptainer",
                 "run",
                 self.image,
             ]
+        return l
 
     def __str__(self) -> str:
         return " ".join(self.to_list())
@@ -112,12 +112,12 @@ def parse_volumes(lr: LineReader, c: ComposeService):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:6] == "      " and lr.line[6] == "-":
-            volume_pair = lr.line[7:].lstrip().rstrip().split(":")
-            if len(volume_pair) not in [2, 3]:
-                raise Exception("invalid")
+            vol = lr.line[7:].lstrip().rstrip()
+            if vol.count(":") not in [1, 2]:
+                raise ParsingError()
             else:
-                volume_pair = volume_pair[:2]
-                c.volumes.append(volume_pair)
+                vol = ":".join(vol.split(":")[:2])
+                c.volumes.append(vol)
         else:
             break
         lr.move_to_next_line()
