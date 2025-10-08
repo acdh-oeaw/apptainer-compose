@@ -1,8 +1,12 @@
 
 services:
+
+
   compose_test_1:
+
 #    image: alpine:latest
     image: alpine:latest
-    command: echo "compose_test_1"
+    command: ls /mount
     volumes:
       - ./:/mount/
+      - ./:/mount_2/:z
