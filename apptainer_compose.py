@@ -7,12 +7,17 @@ from dataclasses import dataclass
 from collections.abc import Iterator
 
 
+class ParsingError(Exception):
+    def __init__(self, message="parsing error"):
+        super().__init__(message)
+
+
 class ComposeService:
 
     def __init__(self):
         self.image: str = None
         self.command: list[str] = None
-        self.volumes: list[list[str]] = []
+        self.volumes: list[str] = []
 
     def to_list(self) -> list[str]:
         if self.command:
@@ -65,7 +70,7 @@ class LineReader:
                     else:
                         char_prev = char
                 if not skip_line:
-                    yield line
+                    yield n, line
 
     def move_to_next_line(self):
         try:
@@ -85,11 +90,11 @@ def validate_string(s: str, additional_chars: list[str]=None) -> str:
         additional_chars = []
     for invalid_char in [" ", ": "] + additional_chars:
         if invalid_char in s:
-            raise Exception("invalid")
+            raise ParsingError()
     return s
 
 
-def get_key_and_potential_value(s: str) -> str:
+def get_key_and_potential_value(s: str) -> tuple[str, str]:
     key = None
     value = None
     if s[-1] == ":":
@@ -97,7 +102,7 @@ def get_key_and_potential_value(s: str) -> str:
     else:
         key_value_list = s.split(": ")
         if len(key_value_list) != 2:
-            raise Exception("invalid")
+            raise ParsingError()
         key = validate_string(key_value_list[0])
         value = key_value_list[1].lstrip()
     return key, value
@@ -120,7 +125,7 @@ def parse_volumes(lr: LineReader, c: ComposeService):
 
 
 def state_individual_service(lr: LineReader) -> ComposeService:
-    cs = ComposeService
+    cs = ComposeService()
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:4] == "    " and lr.line[4] != " ":
@@ -129,7 +134,7 @@ def state_individual_service(lr: LineReader) -> ComposeService:
                 cs.image = "docker://" + validate_string(value)
             elif key == "command":
                 if cs.command is not None:
-                    raise Exception("invalid")
+                    raise ParsingError()
                 cs.command = value.split(" ")
             elif key == "volumes":
                 if value is None:
@@ -145,7 +150,7 @@ def state_root_services(lr: LineReader, c: Compose) -> Compose:
         if lr.line[:2] == "  " and lr.line[2] != " ":
             service_name, value = get_key_and_potential_value(lr.line[2:])
             if value is not None:
-                raise Exception("invalid")
+                raise ParsingError()
             else:
                 c.compose_services[service_name] = state_individual_service(lr)
         lr.move_to_next_line()
