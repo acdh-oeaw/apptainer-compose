@@ -1122,7 +1122,7 @@ class LineReader:
         return self.__str__()
 
 
-def validate_string(s: str, additional_chars: list[str]=None) -> str:
+def validate_string(s: str, additional_chars: list[str] = None) -> str:
     if additional_chars is None:
         additional_chars = []
     for invalid_char in [" ", ": "] + additional_chars:
