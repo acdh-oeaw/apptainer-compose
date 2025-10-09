@@ -2,4 +2,3 @@
 services:
   invalid:name:
     image: alpine:latest
-    command: echo "hey"

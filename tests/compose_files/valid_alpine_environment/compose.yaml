@@ -1,0 +1,7 @@
+
+services:
+  valid_alpine:
+    image: alpine:latest
+    environment:
+      var_1: "bla"
+      var_2: true

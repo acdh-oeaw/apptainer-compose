@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-import os
 import argparse
 import subprocess
 import sys
-from dataclasses import dataclass
-from collections.abc import Iterator
+from collections.abc import Generator
+import warnings
 
 
 class ParsingError(Exception):
@@ -18,19 +17,22 @@ class ComposeService:
         self.image: str = None
         self.command: list[str] = None
         self.volumes: list[str] = []
+        self.environment: list[tuple[str, str]] = []
 
     def to_list(self) -> list[str]:
+        l = ["apptainer"]
         if self.command:
-            l = ["apptainer", "exec"]
-            for vol in self.volumes:
-                l += ["--bind", vol]
-            l += [self.image] + self.command
+            l.append("exec")
         else:
-            l = [
-                "apptainer",
-                "run",
-                self.image,
-            ]
+            l.append("run")
+        for vol in self.volumes:
+            l += ["--bind", vol]
+        if self.environment:
+            for env in self.environment:
+                l += ["--env", env[0] + "=" + env[1]]
+        l += [self.image]
+        if self.command:
+            l += self.command
         return l
 
     def __str__(self) -> str:
@@ -51,7 +53,7 @@ class LineReader:
     def __init__(self, file_path):
         self.n: int = None
         self.line: str = None
-        self.generator: Iterator[str] = self.create_generator(file_path)
+        self.generator: Generator[tuple[int, str], None, None] = self.create_generator(file_path)
 
     def create_generator(self, file_path):
         with open(file_path, "r") as f:
@@ -108,7 +110,7 @@ def get_key_and_potential_value(s: str) -> tuple[str, str]:
     return key, value
 
 
-def parse_volumes(lr: LineReader, c: ComposeService):
+def parse_volumes(lr: LineReader, cs: ComposeService):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:6] == "      " and lr.line[6] == "-":
@@ -117,11 +119,25 @@ def parse_volumes(lr: LineReader, c: ComposeService):
                 raise ParsingError()
             else:
                 vol = ":".join(vol.split(":")[:2])
-                c.volumes.append(vol)
+                cs.volumes.append(vol)
         else:
             break
         lr.move_to_next_line()
-    return c
+    return cs
+
+
+def parse_environment(lr: LineReader, cs: ComposeService):
+    lr.move_to_next_line()
+    while lr.line is not None:
+        if lr.line[:6] == "      " and lr.line[6] != " ":
+            key, value = get_key_and_potential_value(lr.line[6:])
+            if (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'"):
+                value = value[1:-1]
+            cs.environment.append((key, value))
+        else:
+            break
+        lr.move_to_next_line()
+    return cs
 
 
 def state_individual_service(lr: LineReader) -> ComposeService:
@@ -140,6 +156,14 @@ def state_individual_service(lr: LineReader) -> ComposeService:
                 if value is None:
                     cs = parse_volumes(lr, cs)
                 continue
+            elif key == "environment":
+                if value is None:
+                    cs = parse_environment(lr, cs)
+                continue
+            elif key in ["networks"]:
+                warnings.warn(f"'{key}' is not supported", UserWarning)
+            else:
+                raise ParsingError()
         lr.move_to_next_line()
     return cs
 

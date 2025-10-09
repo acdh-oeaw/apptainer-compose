@@ -1,5 +1,5 @@
 
 services:
-  compose_test_2:
+  valid_veld:
     image: alpine:latest
-    command: echo "compose_test_2"
+    command: echo "valid_veld"

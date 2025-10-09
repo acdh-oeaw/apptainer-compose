@@ -1,0 +1,6 @@
+
+services:
+  semivalid_networks:
+    image: alpine:latest
+    networks:
+      - bla

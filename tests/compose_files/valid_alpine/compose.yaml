@@ -1,5 +1,5 @@
 
 services:
-  compose_test_1:
+  valid_alpine:
     image: alpine:latest
-    command: echo "compose_test_1"
+    command: echo "valid_alpine"
