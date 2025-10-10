@@ -1,7 +1,11 @@
 import os
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from apptainer_compose import parse, ParsingError
+
 
 tests_target_list = [
     ("invalid_1", None),
