@@ -16,6 +16,13 @@ tests_target_list = [
         "apptainer exec --bind ./:/mount/ --bind ./:/mount_2/ docker://alpine:latest ls /mount",
     ),
     (
+        "valid_build",
+        [
+            "apptainer build -F valid_build.sif valid_build.def",
+            "apptainer run valid_build.sif",
+        ],
+    ),
+    (
         "valid_ghcr",
         'apptainer exec docker://ghcr.io/linuxcontainers/alpine:latest echo "valid_ghcr"',
     ),
@@ -32,22 +39,27 @@ def main_test():
         print(f"{folder=}")
         os.chdir("./compose_files/" + folder)
         with open("./test.sh", "r") as f:
-            sys.argv = None
+            command_counter = 0
             for line in f.readlines():
+                sys.argv = None
                 if line.startswith("../../../apptainer_compose.py"):
                     sys.argv = line.split()
-            # c = parse()
-            try:
-                print(f"{sys.argv=}")
-                c = parse()
-                cs = list(c.compose_services.values())[0]
-                parsed_command = str(cs)
-            except ParsingError as ex:
-                print(ex)
-                parsed_command = None
-            print(f"{parsed_command=}")
-            if parsed_command != target:
-                raise Exception(f"Error: {folder=}, {parsed_command=}, {target=}")
+                    try:
+                        print(f"{sys.argv=}")
+                        command, csc = parse()
+                        cs = csc.compose_services[0]
+                        parsed_command = cs.command_to_str(command)
+                    except ParsingError as ex:
+                        print(ex)
+                        parsed_command = None
+                    print(f"{parsed_command=}")
+                    if type(target) in [str, type(None)]:
+                        current_target = target
+                    elif type(target) is list:
+                        current_target = target[command_counter]
+                    if parsed_command != current_target:
+                        raise Exception(f"Error: {folder=}, {parsed_command=}, {target=}")
+                    command_counter += 1
         os.chdir("../..")
 
 
