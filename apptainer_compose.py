@@ -10,6 +10,9 @@ from collections.abc import Generator
 from copy import deepcopy
 
 
+# - Dockerfile converter ---------------------------------------------------------------------------
+
+
 class Recipe:
     """
     taken and modified from https://github.com/singularityhub/singularity-cli
@@ -1041,6 +1044,9 @@ def convert_dockerfile_to_apptainer(in_docker_file, out_apptainer_file):
     recipeWriter.write(out_apptainer_file)
 
 
+# - compose converter ------------------------------------------------------------------------------
+
+
 class ParsingError(Exception):
     def __init__(self, message="parsing error"):
         super().__init__(message)
@@ -1223,7 +1229,10 @@ def state_start(lr: LineReader) -> Compose:
         if lr.line.startswith("services:"):
             state_root_services(lr, c)
         lr.move_to_next_line()
-    return c
+    return csc
+
+
+# - main -------------------------------------------------------------------------------------------
 
 
 def parse() -> Compose:
