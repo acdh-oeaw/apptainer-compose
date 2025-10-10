@@ -29,9 +29,6 @@ tests_target_list = [
     ("valid_veld", 'apptainer exec docker://alpine:latest echo "valid_veld"'),
 ]
 
-# tests_target_list = [
-# ]
-
 
 def main_test():
     for folder, target in tests_target_list:
