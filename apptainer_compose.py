@@ -1297,7 +1297,6 @@ def main():
             convert_dockerfile_to_apptainer(cs.build, cs.def_file)
         print(cs.name)
         print(cs)
-        print(cs.command_to_list(command))
         print(cs.command_to_str(command))
         execute(cs.command_to_list(command))
 
