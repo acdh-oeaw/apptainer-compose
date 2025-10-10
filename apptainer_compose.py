@@ -840,7 +840,7 @@ class SingularityWriter:
             print("Please provide a Recipe() to the writer first.")
             sys.exit(1)
 
-    def convert(self, runscript="/bin/bash", force=False):
+    def convert(self, runscript="", force=False):
         """docker2singularity will return a Singularity build recipe based on
         a the loaded recipe object. It doesn't take any arguments as the
         recipe object contains the sections, and the calling function
@@ -900,7 +900,7 @@ class SingularityWriter:
         recipe = "\n".join(recipe).replace("\n\n", "\n").strip("\n")
         return recipe.rstrip()
 
-    def _create_runscript(self, default="/bin/bash", force=False):
+    def _create_runscript(self, default="", force=False):
         """create_entrypoint is intended to create a singularity runscript
         based on a Docker entrypoint or command. We first use the Docker
         ENTRYPOINT, if defined. If not, we use the CMD. If neither is found,
