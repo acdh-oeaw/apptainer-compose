@@ -1,0 +1,4 @@
+
+services:
+  valid_build:
+    build: .

@@ -1038,7 +1038,9 @@ class SingularityWriter:
         return section
 
 
-def convert_dockerfile_to_apptainer(in_docker_file, out_apptainer_file):
+def convert_dockerfile_to_apptainer(in_docker_context: str, out_apptainer_file: str):
+    if in_docker_context == ".":
+        in_docker_file = "Dockerfile"
     recipeParser = DockerParser(in_docker_file)
     recipeWriter = SingularityWriter(recipeParser.recipe)
     recipeWriter.write(out_apptainer_file)
@@ -1055,38 +1057,61 @@ class ParsingError(Exception):
 class ComposeService:
 
     def __init__(self):
+        self.name: str = None
         self.image: str = None
-        self.command: list[str] = None
+        self.def_file: str = None
+        self.sif_file: str = None
+        self.build: str = None
+        self.exec_command: list[str] = None
         self.volumes: list[str] = []
-        self.environment: list[tuple[str, str]] = []
+        self.environment: list[tuple[str, str]] = []#
 
-    def to_list(self) -> list[str]:
+    def command_to_list(self, command) -> list[str]:
         l = ["apptainer"]
-        if self.command:
-            l.append("exec")
-        else:
-            l.append("run")
-        for vol in self.volumes:
-            l += ["--bind", vol]
-        if self.environment:
-            for env in self.environment:
-                l += ["--env", env[0] + "=" + env[1]]
-        l += [self.image]
-        if self.command:
-            l += self.command
+        if command == "build":
+            l += [
+                "build",
+                "-F",
+                self.name + ".sif",
+                self.name + ".def",
+            ]
+        elif command == "up":
+            if self.exec_command:
+                l.append("exec")
+            else:
+                l.append("run")
+            for vol in self.volumes:
+                l += ["--bind", vol]
+            if self.environment:
+                for env in self.environment:
+                    l += ["--env", env[0] + "=" + env[1]]
+            if self.build:
+                l += [self.sif_file]
+            elif self.image:
+                l += [self.image]
+            if self.exec_command:
+                l += self.exec_command
         return l
 
+    def command_to_str(self, command):
+        return " ".join(self.command_to_list(command))
+
     def __str__(self) -> str:
-        return " ".join(self.to_list())
+        s = ""
+        for k, v in self.__dict__.items():
+            if v:
+                s += k + ": " + str(v) + ", "
+        s = "<class 'ComposeService': " + s[:-2] + ">"
+        return s
 
     def __repr__(self) -> str:
         return str(self)
 
 
-class Compose:
+class ComposeServiceContainer:
 
     def __init__(self):
-        self.compose_services: dict[str, ComposeService] = {}
+        self.compose_services: list[ComposeService] = []
 
 
 class LineReader:
@@ -1181,18 +1206,22 @@ def parse_environment(lr: LineReader, cs: ComposeService):
     return cs
 
 
-def state_individual_service(lr: LineReader) -> ComposeService:
-    cs = ComposeService()
+def state_individual_service(lr: LineReader, cs: ComposeService) -> ComposeService:
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:4] == "    " and lr.line[4] != " ":
             key, value = get_key_and_potential_value(lr.line[4:])
             if key == "image":
                 cs.image = "docker://" + validate_string(value)
+            elif key == "build":
+                cs.build = validate_string(value)
+                if value == ".":
+                    cs.def_file = cs.name + ".def"
+                    cs.sif_file = cs.name + ".sif"
             elif key == "command":
-                if cs.command is not None:
+                if cs.exec_command is not None:
                     raise ParsingError()
-                cs.command = value.split(" ")
+                cs.exec_command = value.split(" ")
             elif key == "volumes":
                 if value is None:
                     cs = parse_volumes(lr, cs)
@@ -1202,14 +1231,14 @@ def state_individual_service(lr: LineReader) -> ComposeService:
                     cs = parse_environment(lr, cs)
                 continue
             elif key in ["networks"]:
-                warnings.warn(f"'{key}' is not supported", UserWarning)
+                warnings.warn(f"'{key}' is not supported. Ignoring", UserWarning)
             else:
                 raise ParsingError()
         lr.move_to_next_line()
     return cs
 
 
-def state_root_services(lr: LineReader, c: Compose) -> Compose:
+def state_root_services(lr: LineReader, csc: ComposeServiceContainer) -> ComposeServiceContainer:
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:2] == "  " and lr.line[2] != " ":
@@ -1217,17 +1246,20 @@ def state_root_services(lr: LineReader, c: Compose) -> Compose:
             if value is not None:
                 raise ParsingError()
             else:
-                c.compose_services[service_name] = state_individual_service(lr)
+                cs = ComposeService()
+                cs.name = service_name
+                cs = state_individual_service(lr, cs)
+                csc.compose_services.append(cs)
         lr.move_to_next_line()
-    return c
+    return csc
 
 
-def state_start(lr: LineReader) -> Compose:
-    c = Compose()
+def state_start(lr: LineReader) -> ComposeServiceContainer:
+    csc = ComposeServiceContainer()
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line.startswith("services:"):
-            state_root_services(lr, c)
+            state_root_services(lr, csc)
         lr.move_to_next_line()
     return csc
 
@@ -1235,13 +1267,14 @@ def state_start(lr: LineReader) -> Compose:
 # - main -------------------------------------------------------------------------------------------
 
 
-def parse() -> Compose:
+def parse() -> tuple[str, ComposeServiceContainer]:
     parser = argparse.ArgumentParser(prog="apptainer_compose.py", description="Apptainer Compose")
     parser.add_argument("-f", "--file", help="file")
 
     subparsers = parser.add_subparsers(dest="COMMAND", required=True)
     subparsers.add_parser("up", help="Start services")
     subparsers.add_parser("down", help="Stop services")
+    subparsers.add_parser("build", help="Stop services")
 
     args = parser.parse_args()
     if args.file is None:
@@ -1249,7 +1282,7 @@ def parse() -> Compose:
     print(f"COMMAND: {args.COMMAND}")
     print(f"file: {args.file}")
 
-    return state_start(LineReader(args.file))
+    return args.COMMAND, state_start(LineReader(args.file))
 
 
 def execute(cmd_list: list[str]):
@@ -1258,12 +1291,15 @@ def execute(cmd_list: list[str]):
 
 
 def main():
-    c = parse()
-    for cs_name, cs in c.compose_services.items():
-        print(cs_name)
-        print(cs.to_list())
+    command, csc = parse()
+    for cs in csc.compose_services:
+        if command == "build":
+            convert_dockerfile_to_apptainer(cs.build, cs.def_file)
+        print(cs.name)
         print(cs)
-        execute(cs.to_list())
+        print(cs.command_to_list(command))
+        print(cs.command_to_str(command))
+        execute(cs.command_to_list(command))
 
 
 if __name__ == "__main__":

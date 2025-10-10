@@ -1,0 +1,8 @@
+Bootstrap: docker
+From: alpine:latest
+Stage: spython-base
+
+%runscript
+exec  echo valid_dockerfile "$@"
+%startscript
+exec  echo valid_dockerfile "$@"
