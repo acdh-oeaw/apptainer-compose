@@ -10,10 +10,13 @@ from apptainer_compose import parse, ParsingError
 tests_target_list = [
     ("invalid_1", None),
     ("semivalid_networks", "apptainer run docker://alpine:latest"),
-    ("valid_alpine", 'apptainer exec docker://alpine:latest echo "valid_alpine"'),
+    ("valid_alpine_command", 'apptainer exec docker://alpine:latest echo "valid_alpine_command"'),
     (
-        "valid_alpine_environment",
-        "apptainer run --env var_1=bla --env var_2=true docker://alpine:latest",
+        "valid_interactive_alpine_environment",
+        (
+            "apptainer run --env var_1='bla' --env var_2='true' --env var_3='bla ble' --env "
+            + "var_4='bla ble' --env var_5='bla ble' --env var_6= docker://alpine:latest",
+        ),
     ),
     (
         "valid_alpine_volumes",
@@ -47,9 +50,9 @@ def main_test():
                     sys.argv = line.split()
                     try:
                         print(f"{sys.argv=}")
-                        command, csc = parse()
+                        csc = parse()
                         cs = csc.compose_services[0]
-                        parsed_command = cs.command_to_str(command)
+                        parsed_command = cs.command_to_str(csc.args)
                     except ParsingError as ex:
                         print(ex)
                         parsed_command = None
@@ -59,7 +62,7 @@ def main_test():
                     elif type(target) is list:
                         current_target = target[command_counter]
                     if parsed_command != current_target:
-                        raise Exception(f"Error: {folder=}, {parsed_command=}, {target=}")
+                        raise Exception(f"Error: {folder=}\n{current_target=}\n{parsed_command=}\n")
                     command_counter += 1
         os.chdir("../..")
 

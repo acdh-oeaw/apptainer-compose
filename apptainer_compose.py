@@ -6,6 +6,7 @@ import re
 import subprocess
 import sys
 import warnings
+from argparse import Namespace
 from collections.abc import Generator
 from copy import deepcopy
 
@@ -1064,18 +1065,18 @@ class ComposeService:
         self.build: str = None
         self.exec_command: list[str] = None
         self.volumes: list[str] = []
-        self.environment: list[tuple[str, str]] = []#
+        self.environment: list[tuple[str, str]] = []
 
-    def command_to_list(self, command) -> list[str]:
+    def command_to_list(self, args) -> list[str]:
         l = ["apptainer"]
-        if command == "build":
+        if args.COMMAND == "build":
             l += [
                 "build",
                 "-F",
-                self.name + ".sif",
-                self.name + ".def",
+                self.sif_file,
+                self.def_file,
             ]
-        elif command == "up":
+        elif args.COMMAND == "up":
             if self.exec_command:
                 l.append("exec")
             else:
@@ -1093,8 +1094,8 @@ class ComposeService:
                 l += self.exec_command
         return l
 
-    def command_to_str(self, command):
-        return " ".join(self.command_to_list(command))
+    def command_to_str(self, args):
+        return " ".join(self.command_to_list(args))
 
     def __str__(self) -> str:
         s = ""
@@ -1111,6 +1112,7 @@ class ComposeService:
 class ComposeServiceContainer:
 
     def __init__(self):
+        self.args: Namespace = None
         self.compose_services: list[ComposeService] = []
 
 
@@ -1254,8 +1256,7 @@ def state_root_services(lr: LineReader, csc: ComposeServiceContainer) -> Compose
     return csc
 
 
-def state_start(lr: LineReader) -> ComposeServiceContainer:
-    csc = ComposeServiceContainer()
+def state_start(lr: LineReader, csc: ComposeServiceContainer) -> ComposeServiceContainer:
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line.startswith("services:"):
@@ -1267,7 +1268,7 @@ def state_start(lr: LineReader) -> ComposeServiceContainer:
 # - main -------------------------------------------------------------------------------------------
 
 
-def parse() -> tuple[str, ComposeServiceContainer]:
+def parse() -> ComposeServiceContainer:
     parser = argparse.ArgumentParser(prog="apptainer_compose.py", description="Apptainer Compose")
     parser.add_argument("-f", "--file", help="file")
 
@@ -1282,7 +1283,9 @@ def parse() -> tuple[str, ComposeServiceContainer]:
     print(f"COMMAND: {args.COMMAND}")
     print(f"file: {args.file}")
 
-    return args.COMMAND, state_start(LineReader(args.file))
+    csc = ComposeServiceContainer()
+    csc.args = args
+    return state_start(LineReader(args.file), csc)
 
 
 def execute(cmd_list: list[str]):
@@ -1291,14 +1294,14 @@ def execute(cmd_list: list[str]):
 
 
 def main():
-    command, csc = parse()
+    csc = parse()
     for cs in csc.compose_services:
-        if command == "build":
+        if csc.args.COMMAND == "build":
             convert_dockerfile_to_apptainer(cs.build, cs.def_file)
         print(cs.name)
         print(cs)
-        print(cs.command_to_str(command))
-        execute(cs.command_to_list(command))
+        print(cs.command_to_str(csc.args))
+        execute(cs.command_to_list(csc.args))
 
 
 if __name__ == "__main__":
