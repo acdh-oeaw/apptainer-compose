@@ -1148,12 +1148,13 @@ class LineReader:
                         char_prev = char
                 if not skip_line:
                     yield n, line
+        yield n + 1, None
 
     def move_to_next_line(self):
         try:
             self.n, self.line = next(self.generator)
         except:
-            self.line = None
+            pass
 
     def __str__(self) -> str:
         return f"{self.n}: {self.line}"
