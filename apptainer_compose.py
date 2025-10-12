@@ -1051,6 +1051,7 @@ def convert_dockerfile_to_apptainer(in_docker_context: str, out_apptainer_file: 
 
 
 class ParsingError(Exception):
+
     def __init__(self, message="parsing error"):
         super().__init__(message)
 
