@@ -1,0 +1,8 @@
+
+services:
+  valid_inherited_volumes_child:
+    extends:
+      file: ./parent/compose.yaml
+      service: valid_inherited_volumes_parent
+    volumes:
+      - ./:/out_parent_1

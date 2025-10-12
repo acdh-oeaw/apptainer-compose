@@ -37,7 +37,7 @@ tests_target_list = [
         "valid_inherited_build",
         [
             "apptainer build -F ./parent/valid_inherited_build_parent.sif ./parent/valid_inherited_build_parent.def",
-            "apptainer run ./parent/valid_inherited_build_parent.sif"
+            "apptainer run ./parent/valid_inherited_build_parent.sif",
         ],
     ),
     (
@@ -46,6 +46,13 @@ tests_target_list = [
             "apptainer exec --env var_parent_1='value_parent_1' --env var_parent_2='value_child_2' "
             + "--env var_child_3='value_child_3' docker://alpine:latest echo "
             + '"valid_inherited_child"'
+        ),
+    ),
+    (
+        "valid_inherited_volumes",
+        (
+            "apptainer exec --bind ./:/out_parent_1 --bind ./parent/:/out_parent_2 "
+            + "docker://alpine:latest cat /out_parent_1/compose.yaml"
         ),
     ),
     ("valid_veld", 'apptainer exec docker://alpine:latest echo "valid_veld"'),

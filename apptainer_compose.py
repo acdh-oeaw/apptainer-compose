@@ -1066,7 +1066,7 @@ class ComposeService:
         self.sif_file: str = None
         self.build: str = None
         self.exec_command: list[str] = None
-        self.volumes: list[str] = []
+        self.volumes: dict[str, str] = {}
         self.environment: dict[str, str] = {}
 
     def command_to_list(self, args) -> list[str]:
@@ -1086,7 +1086,7 @@ class ComposeService:
                     l.append("run")
             elif args.COMMAND == "run":
                 l.append("run")
-            for vol in self.volumes:
+            for vol in self.volumes.values():
                 l += ["--bind", vol]
             if self.environment:
                 for k, v in self.environment.items():
@@ -1201,7 +1201,8 @@ def parse_volumes(lr: LineReader, cs: ComposeService):
                 raise ParsingError()
             else:
                 vol = ":".join(vol.split(":")[:2])
-                cs.volumes.append(vol)
+                vol_container = vol.split(":")[1]
+                cs.volumes[vol_container] = vol
         else:
             break
         lr.move_to_next_line()
@@ -1253,8 +1254,8 @@ def parse_extends(lr: LineReader, cs: ComposeService):
     for key, value in cs.__dict__.items():
         if value:
             parent_cs.__setattr__(key, value)
+    parent_file_folder = parent_file_location.rsplit("/", 1)[0]
     if parent_cs.build:
-        parent_file_folder = parent_file_location.rsplit("/", 1)[0]
         if parent_cs.build == ".":
             parent_cs.build = parent_file_folder
         else:
@@ -1262,6 +1263,10 @@ def parse_extends(lr: LineReader, cs: ComposeService):
             parent_cs.build = parent_build
         parent_cs.def_file = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.def_file)
         parent_cs.sif_file = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.sif_file)
+    volumes_new = {}
+    for k, v in parent_cs.volumes.items():
+        volumes_new[k] = remove_redundant_slashes(parent_file_folder + "/" + v)
+    parent_cs.volumes = volumes_new
     return parent_cs
 
 

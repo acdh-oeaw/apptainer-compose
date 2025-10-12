@@ -1,0 +1,8 @@
+
+services:
+  valid_inherited_volumes_parent:
+    image: alpine:latest
+    command: cat /out_parent_1/compose.yaml
+    volumes:
+      - ./:/out_parent_1
+      - ./:/out_parent_2
