@@ -1182,6 +1182,8 @@ def get_key_and_potential_value(s: str) -> tuple[str, str]:
             raise ParsingError()
         key = validate_string(key_value_list[0])
         value = key_value_list[1].lstrip()
+        if value == "" or value.isspace():
+            value = None
     return key, value
 
 
