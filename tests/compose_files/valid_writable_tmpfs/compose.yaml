@@ -1,0 +1,5 @@
+
+services:
+  valid_writable_tmpfs:
+    image: alpine:latest
+    command: touch /opt/bla

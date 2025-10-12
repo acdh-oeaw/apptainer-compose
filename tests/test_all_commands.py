@@ -56,6 +56,10 @@ tests_target_list = [
         ),
     ),
     ("valid_veld", 'apptainer exec docker://alpine:latest echo "valid_veld"'),
+    (
+        "valid_writable_tmpfs",
+        "apptainer exec --writable-tmpfs docker://alpine:latest touch /opt/bla",
+    ),
 ]
 
 
