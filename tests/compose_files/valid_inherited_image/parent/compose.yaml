@@ -1,0 +1,8 @@
+
+services:
+  valid_inherited_parent:
+    image: alpine:latest
+    command: echo "valid_inherited_parent"
+    environment:
+      var_parent_1: "value_parent_1"
+      var_parent_2: "value_parent_2"

@@ -33,6 +33,14 @@ tests_target_list = [
         "valid_ghcr",
         'apptainer exec docker://ghcr.io/linuxcontainers/alpine:latest echo "valid_ghcr"',
     ),
+    (
+        "valid_inherited_image",
+        (
+            "apptainer exec --env var_parent_1='value_parent_1' --env var_parent_2='value_child_2' "
+            + "--env var_child_3='value_child_3' docker://alpine:latest echo "
+            + '"valid_inherited_child"'
+        ),
+    ),
     ("valid_veld", 'apptainer exec docker://alpine:latest echo "valid_veld"'),
 ]
 

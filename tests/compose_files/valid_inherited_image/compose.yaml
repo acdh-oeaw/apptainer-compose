@@ -1,0 +1,10 @@
+
+services:
+  valid_inherited_child:
+    extends:
+      file: ./parent/compose.yaml
+      service: valid_inherited_parent
+    command: echo "valid_inherited_child"
+    environment:
+      var_parent_2: "value_child_2"
+      var_child_3: "value_child_3"

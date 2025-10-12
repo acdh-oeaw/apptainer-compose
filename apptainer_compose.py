@@ -1218,6 +1218,34 @@ def parse_environment(lr: LineReader, cs: ComposeService):
     return cs
 
 
+def parse_extends(lr: LineReader, cs: ComposeService):
+    lr.move_to_next_line()
+    parent_csc = None
+    parent_service_name = None
+    while lr.line is not None:
+        if lr.line[:6] == "      " and lr.line[6] != " ":
+            key, value = get_key_and_potential_value(lr.line[6:])
+            if key == "file":
+                parent_csc = state_start(LineReader(value), ComposeServiceContainer())
+            elif key == "service":
+                parent_service_name = value
+        if lr.line[:4] == "    " and lr.line[4] != " ":
+            break
+        lr.move_to_next_line()
+    if parent_csc is None or parent_service_name is None:
+        raise ParsingError()
+    parent_cs = None
+    for parent_cs_potential in parent_csc.compose_services:
+        if parent_cs_potential.name == parent_service_name:
+            parent_cs = parent_cs_potential
+    if parent_cs is None:
+        raise ParsingError()
+    for key, value in cs.__dict__.items():
+        if value:
+            parent_cs.__setattr__(key, value)
+    return parent_cs
+
+
 def state_individual_service(lr: LineReader, cs: ComposeService) -> ComposeService:
     lr.move_to_next_line()
     while lr.line is not None:
@@ -1231,8 +1259,6 @@ def state_individual_service(lr: LineReader, cs: ComposeService) -> ComposeServi
                     cs.def_file = cs.name + ".def"
                     cs.sif_file = cs.name + ".sif"
             elif key == "command":
-                if cs.exec_command is not None:
-                    raise ParsingError()
                 cs.exec_command = value.split(" ")
             elif key == "volumes":
                 if value is None:
@@ -1241,6 +1267,9 @@ def state_individual_service(lr: LineReader, cs: ComposeService) -> ComposeServi
             elif key == "environment":
                 if value is None:
                     cs = parse_environment(lr, cs)
+                continue
+            elif key == "extends":
+                cs = parse_extends(lr, cs)
                 continue
             elif key in ["networks"]:
                 warnings.warn(f"'{key}' is not supported. Ignoring", UserWarning)
