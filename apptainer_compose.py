@@ -1040,8 +1040,9 @@ class SingularityWriter:
 
 
 def convert_dockerfile_to_apptainer(in_docker_context: str, out_apptainer_file: str):
-    if in_docker_context == ".":
-        in_docker_file = "Dockerfile"
+    for file in os.listdir(in_docker_context):
+        if file == "Dockerfile":
+            in_docker_file = remove_redundant_slashes(in_docker_context + "/" + file)
     recipeParser = DockerParser(in_docker_file)
     recipeWriter = SingularityWriter(recipeParser.recipe)
     recipeWriter.write(out_apptainer_file)
@@ -1184,6 +1185,10 @@ def get_key_and_potential_value(s: str) -> tuple[str, str]:
     return key, value
 
 
+def remove_redundant_slashes(path):
+    return path.replace("//", "/").replace("/./", "/")
+
+
 def parse_volumes(lr: LineReader, cs: ComposeService):
     lr.move_to_next_line()
     while lr.line is not None:
@@ -1222,10 +1227,12 @@ def parse_extends(lr: LineReader, cs: ComposeService):
     lr.move_to_next_line()
     parent_csc = None
     parent_service_name = None
+    parent_file_location = None
     while lr.line is not None:
         if lr.line[:6] == "      " and lr.line[6] != " ":
             key, value = get_key_and_potential_value(lr.line[6:])
             if key == "file":
+                parent_file_location = value
                 parent_csc = state_start(LineReader(value), ComposeServiceContainer())
             elif key == "service":
                 parent_service_name = value
@@ -1243,6 +1250,15 @@ def parse_extends(lr: LineReader, cs: ComposeService):
     for key, value in cs.__dict__.items():
         if value:
             parent_cs.__setattr__(key, value)
+    if parent_cs.build:
+        parent_file_folder = parent_file_location.rsplit("/", 1)[0]
+        if parent_cs.build == ".":
+            parent_cs.build = parent_file_folder
+        else:
+            parent_build = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.build)
+            parent_cs.build = parent_build
+        parent_cs.def_file = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.def_file)
+        parent_cs.sif_file = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.sif_file)
     return parent_cs
 
 
