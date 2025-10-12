@@ -1104,7 +1104,17 @@ class ComposeService:
         return l
 
     def command_to_str(self, args):
-        return " ".join(self.command_to_list(args))
+        s = ""
+        prev = None
+        for e in self.command_to_list(args):
+            if prev == "--env":
+                var, val = e.split("=")
+                s += f"{var}='{val}' "
+            else:
+                s += e + " "
+            prev = e
+        s = s[:-1]
+        return s
 
     def __str__(self) -> str:
         s = ""
@@ -1218,10 +1228,8 @@ def parse_environment(lr: LineReader, cs: ComposeService):
             key, value = get_key_and_potential_value(lr.line[6:])
             if value == "null":
                 value = ""
-            elif value[0] == '"' and value[-1] == '"':
-                value = "'" + value[1:-1] + "'"
-            elif value[0] != "'" and value[-1] != "'":
-                value = "'" + value + "'"
+            elif (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'"):
+                value = value[1:-1]
             cs.environment[key] = value
         else:
             break
