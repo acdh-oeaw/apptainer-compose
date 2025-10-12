@@ -1077,10 +1077,13 @@ class ComposeService:
                 self.sif_file,
                 self.def_file,
             ]
-        elif args.COMMAND == "up":
-            if self.exec_command:
-                l.append("exec")
-            else:
+        else:
+            if args.COMMAND == "up":
+                if self.exec_command:
+                    l.append("exec")
+                else:
+                    l.append("run")
+            elif args.COMMAND == "run":
                 l.append("run")
             for vol in self.volumes:
                 l += ["--bind", vol]
@@ -1091,7 +1094,9 @@ class ComposeService:
                 l += [self.sif_file]
             elif self.image:
                 l += [self.image]
-            if self.exec_command:
+            if args.COMMAND == "run":
+                l += args.run_command
+            elif self.exec_command:
                 l += self.exec_command
         return l
 
@@ -1279,14 +1284,19 @@ def parse() -> ComposeServiceContainer:
 
     subparsers = parser.add_subparsers(dest="COMMAND", required=True)
     subparsers.add_parser("up", help="Start services")
-    subparsers.add_parser("down", help="Stop services")
     subparsers.add_parser("build", help="Stop services")
+
+    run_parser = subparsers.add_parser("run", help="Run custom command")
+    run_parser.add_argument("service_name", help="Service name")
+    run_parser.add_argument("run_command", nargs="*", help="Command and arguments to run")
 
     args = parser.parse_args()
     if args.file is None:
         args.file = "compose.yaml"
     print(f"COMMAND: {args.COMMAND}")
     print(f"file: {args.file}")
+    if args.COMMAND == "run":
+        print(args.run_command)
 
     csc = ComposeServiceContainer()
     csc.args = args

@@ -9,13 +9,13 @@ from apptainer_compose import parse, ParsingError
 
 tests_target_list = [
     ("invalid_1", None),
-    ("semivalid_networks", "apptainer run docker://alpine:latest"),
+    ("semivalid_networks", 'apptainer exec docker://alpine:latest echo "semivalid_networks"'),
     ("valid_alpine_command", 'apptainer exec docker://alpine:latest echo "valid_alpine_command"'),
     (
         "valid_interactive_alpine_environment",
         (
             "apptainer run --env var_1='bla' --env var_2='true' --env var_3='bla ble' --env "
-            + "var_4='bla ble' --env var_5='bla ble' --env var_6= docker://alpine:latest",
+            + "var_4='bla ble' --env var_5='bla ble' --env var_6= docker://alpine:latest sh"
         ),
     ),
     (

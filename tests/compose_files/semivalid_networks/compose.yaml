@@ -2,5 +2,6 @@
 services:
   semivalid_networks:
     image: alpine:latest
+    command: echo "semivalid_networks"
     networks:
       - bla

@@ -2,4 +2,4 @@
 
 set -e
 
-../../../apptainer_compose.py up
+../../../apptainer_compose.py run valid_alpine sh
