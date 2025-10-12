@@ -1,0 +1,4 @@
+
+services:
+  valid_inherited_build_parent:
+    build: .

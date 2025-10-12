@@ -34,6 +34,13 @@ tests_target_list = [
         'apptainer exec docker://ghcr.io/linuxcontainers/alpine:latest echo "valid_ghcr"',
     ),
     (
+        "valid_inherited_build",
+        [
+            "apptainer build -F ./parent/valid_inherited_build_parent.sif ./parent/valid_inherited_build_parent.def",
+            "apptainer run ./parent/valid_inherited_build_parent.sif"
+        ],
+    ),
+    (
         "valid_inherited_image",
         (
             "apptainer exec --env var_parent_1='value_parent_1' --env var_parent_2='value_child_2' "
