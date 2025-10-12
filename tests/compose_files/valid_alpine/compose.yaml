@@ -1,5 +1,0 @@
-
-services:
-  valid_alpine:
-    image: alpine:latest
-    command: echo "valid_alpine"

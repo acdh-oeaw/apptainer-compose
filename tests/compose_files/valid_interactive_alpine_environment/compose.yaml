@@ -5,3 +5,7 @@ services:
     environment:
       var_1: "bla"
       var_2: true
+      var_3: bla ble
+      var_4: "bla ble"
+      var_5: 'bla ble'
+      var_6: null

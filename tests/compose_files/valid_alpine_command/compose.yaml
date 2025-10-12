@@ -1,0 +1,5 @@
+
+services:
+  valid_alpine_command:
+    image: alpine:latest
+    command: echo "valid_alpine_command"
