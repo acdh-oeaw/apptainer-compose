@@ -1066,7 +1066,7 @@ class ComposeService:
         self.build: str = None
         self.exec_command: list[str] = None
         self.volumes: list[str] = []
-        self.environment: list[tuple[str, str]] = []
+        self.environment: dict[str, str] = {}
 
     def command_to_list(self, args) -> list[str]:
         l = ["apptainer"]
@@ -1088,8 +1088,8 @@ class ComposeService:
             for vol in self.volumes:
                 l += ["--bind", vol]
             if self.environment:
-                for env in self.environment:
-                    l += ["--env", env[0] + "=" + env[1]]
+                for k, v in self.environment.items():
+                    l += ["--env", k + "=" + v]
             if self.build:
                 l += [self.sif_file]
             elif self.image:
@@ -1211,7 +1211,7 @@ def parse_environment(lr: LineReader, cs: ComposeService):
                 value = "'" + value[1:-1] + "'"
             elif (value[0] != "'" and value[-1] != "'"):
                 value = "'" + value + "'"
-            cs.environment.append((key, value))
+            cs.environment[key] = value
         else:
             break
         lr.move_to_next_line()
