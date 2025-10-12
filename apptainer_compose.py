@@ -1200,8 +1200,12 @@ def parse_environment(lr: LineReader, cs: ComposeService):
     while lr.line is not None:
         if lr.line[:6] == "      " and lr.line[6] != " ":
             key, value = get_key_and_potential_value(lr.line[6:])
-            if (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'"):
-                value = value[1:-1]
+            if value == "null":
+                value = ""
+            elif (value[0] == '"' and value[-1] == '"'):
+                value = "'" + value[1:-1] + "'"
+            elif (value[0] != "'" and value[-1] != "'"):
+                value = "'" + value + "'"
             cs.environment.append((key, value))
         else:
             break
