@@ -82,12 +82,13 @@ def main_test():
                     except ParsingError as ex:
                         print(ex)
                         parsed_command = None
-                    print(f"{parsed_command=}")
                     if type(target) in [str, type(None)]:
                         current_target = target
                     elif type(target) is list:
                         current_target = target[command_counter]
-                    if parsed_command != current_target:
+                    if parsed_command == current_target:
+                        print(f"{parsed_command=}")
+                    else:
                         raise Exception(f"Error: {folder=}\n{current_target=}\n{parsed_command=}\n")
                     command_counter += 1
         os.chdir("../..")
