@@ -1346,7 +1346,7 @@ def parse():
     parser = argparse.ArgumentParser(prog="apptainer_compose.py", description="Apptainer Compose")
     parser.add_argument("-f", "--file", help="file")
 
-    subparsers = parser.add_subparsers(dest="COMMAND", required=True)
+    subparsers = parser.add_subparsers(dest="COMMAND")
 
     up_parser = subparsers.add_parser("up", help="Start services")
     up_parser.add_argument("--writable-tmpfs", action="store_true", help="Enable writable tmpfs")
