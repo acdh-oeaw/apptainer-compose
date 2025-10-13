@@ -51,14 +51,14 @@ tests_target_list = [
     (
         "valid_inherited_volumes",
         (
-            "apptainer exec --bind ./:/out_parent_1 --bind ./parent/:/out_parent_2 "
+            "apptainer run --bind ./:/out_parent_1 --bind ./parent/:/out_parent_2 "
             + "docker://alpine:latest cat /out_parent_1/compose.yaml"
         ),
     ),
-    ("valid_veld", 'apptainer exec docker://alpine:latest echo "valid_veld"'),
+    ("valid_veld", 'apptainer run docker://alpine:latest echo "valid_veld"'),
     (
         "valid_writable_tmpfs",
-        "apptainer exec --writable-tmpfs docker://alpine:latest touch /opt/bla",
+        "apptainer run --writable-tmpfs docker://alpine:latest touch /opt/bla",
     ),
 ]
 
