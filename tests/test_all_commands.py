@@ -14,8 +14,8 @@ tests_target_list = [
     (
         "valid_interactive_alpine_environment",
         (
-            "apptainer run --env var_1='bla' --env var_2='true' --env var_3='bla ble' --env "
-            + "var_4='bla ble' --env var_5='bla ble' --env var_6='' docker://alpine:latest sh"
+            "apptainer run --env var_1='bla' --env var_2='true' --env var_3='bla ble' "
+            + "--env var_4='bla ble' --env var_5='bla ble' docker://alpine:latest sh"
         ),
     ),
     (

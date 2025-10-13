@@ -1092,7 +1092,8 @@ class ComposeService:
                 l += ["--bind", vol]
             if self.environment:
                 for k, v in self.environment.items():
-                    l += ["--env", k + "=" + v]
+                    if v is not None:
+                        l += ["--env", k + "=" + v]
             if self.build:
                 l += [self.sif_file]
             elif self.image:
@@ -1227,7 +1228,7 @@ def parse_environment(lr: LineReader, cs: ComposeService):
         if lr.line[:6] == "      " and lr.line[6] != " ":
             key, value = get_key_and_potential_value(lr.line[6:])
             if value == "null":
-                value = ""
+                value = None
             elif (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'"):
                 value = value[1:-1]
             cs.environment[key] = value
