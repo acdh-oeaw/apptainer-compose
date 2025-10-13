@@ -9,8 +9,8 @@ from apptainer_compose import parse, ParsingError
 
 tests_target_list = [
     ("invalid_1", None),
-    ("semivalid_networks", 'apptainer exec docker://alpine:latest echo "semivalid_networks"'),
-    ("valid_alpine_command", 'apptainer exec docker://alpine:latest echo "valid_alpine_command"'),
+    ("semivalid_networks", 'apptainer run docker://alpine:latest echo "semivalid_networks"'),
+    ("valid_alpine_command", 'apptainer run docker://alpine:latest echo "valid_alpine_command"'),
     (
         "valid_interactive_alpine_environment",
         (
@@ -20,7 +20,7 @@ tests_target_list = [
     ),
     (
         "valid_alpine_volumes",
-        "apptainer exec --bind ./:/mount/ --bind ./:/mount_2/ docker://alpine:latest ls /mount",
+        "apptainer run --bind ./:/mount/ --bind ./:/mount_2/ docker://alpine:latest ls /mount",
     ),
     (
         "valid_build",
@@ -31,7 +31,7 @@ tests_target_list = [
     ),
     (
         "valid_ghcr",
-        'apptainer exec docker://ghcr.io/linuxcontainers/alpine:latest echo "valid_ghcr"',
+        'apptainer run docker://ghcr.io/linuxcontainers/alpine:latest echo "valid_ghcr"',
     ),
     (
         "valid_inherited_build",
@@ -43,7 +43,7 @@ tests_target_list = [
     (
         "valid_inherited_image",
         (
-            "apptainer exec --env var_parent_1='value_parent_1' --env var_parent_2='value_child_2' "
+            "apptainer run --env var_parent_1='value_parent_1' --env var_parent_2='value_child_2' "
             + "--env var_child_3='value_child_3' docker://alpine:latest echo "
             + '"valid_inherited_child"'
         ),
