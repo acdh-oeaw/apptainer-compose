@@ -3,3 +3,4 @@
 **/__pycache__
 **/*.def
 **/*.sif
+/compose_test.yaml
