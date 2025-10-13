@@ -1065,7 +1065,7 @@ class ComposeService:
         self.def_file: str = None
         self.sif_file: str = None
         self.build: str = None
-        self.exec_command: list[str] = None
+        self.run_command: list[str] = None
         self.volumes: dict[str, str] = {}
         self.environment: dict[str, str] = {}
 
@@ -1080,8 +1080,8 @@ class ComposeService:
             ]
         else:
             if args.COMMAND == "up":
-                if self.exec_command:
-                    l.append("exec")
+                if self.run_command:
+                    l.append("run")
                 else:
                     l.append("run")
             elif args.COMMAND == "run":
@@ -1100,8 +1100,8 @@ class ComposeService:
                 l += [self.image]
             if args.COMMAND == "run":
                 l += args.run_command
-            elif self.exec_command:
-                l += self.exec_command
+            elif self.run_command:
+                l += self.run_command
         return l
 
     def command_to_str(self, args):
@@ -1294,7 +1294,7 @@ def state_individual_service(lr: LineReader, cs: ComposeService) -> ComposeServi
                     cs.def_file = cs.name + ".def"
                     cs.sif_file = cs.name + ".sif"
             elif key == "command":
-                cs.exec_command = value.split(" ")
+                cs.run_command = value.split(" ")
             elif key == "volumes":
                 if value is None:
                     cs = parse_volumes(lr, cs)
