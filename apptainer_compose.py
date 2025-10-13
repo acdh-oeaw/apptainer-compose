@@ -1060,16 +1060,16 @@ class ParsingError(Exception):
 class ComposeService:
 
     def __init__(self):
-        self.name: str = None
-        self.image: str = None
-        self.def_file: str = None
-        self.sif_file: str = None
-        self.build: str = None
-        self.run_command: list[str] = None
-        self.volumes: dict[str, str] = {}
-        self.environment: dict[str, str] = {}
+        self.name = None
+        self.image = None
+        self.def_file = None
+        self.sif_file = None
+        self.build = None
+        self.run_command = None
+        self.volumes = {}
+        self.environment = {}
 
-    def command_to_list(self, args) -> list[str]:
+    def command_to_list(self, args):
         l = ["apptainer"]
         if args.COMMAND == "build":
             l += [
@@ -1117,7 +1117,7 @@ class ComposeService:
         s = s[:-1]
         return s
 
-    def __str__(self) -> str:
+    def __str__(self):
         s = ""
         for k, v in self.__dict__.items():
             if v:
@@ -1125,23 +1125,23 @@ class ComposeService:
         s = "<class 'ComposeService': " + s[:-2] + ">"
         return s
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return str(self)
 
 
 class ComposeServiceContainer:
 
     def __init__(self):
-        self.args: Namespace = None
-        self.compose_services: list[ComposeService] = []
+        self.args = None
+        self.compose_services = []
 
 
 class LineReader:
 
     def __init__(self, file_path):
-        self.n: int = None
-        self.line: str = None
-        self.generator: Generator[tuple[int, str], None, None] = self.create_generator(file_path)
+        self.n = None
+        self.line = None
+        self.generator = self.create_generator(file_path)
 
     def create_generator(self, file_path):
         with open(file_path, "r") as f:
@@ -1169,14 +1169,14 @@ class LineReader:
         except:
             pass
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"{self.n}: {self.line}"
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return self.__str__()
 
 
-def validate_string(s: str, additional_chars: list[str] = None) -> str:
+def validate_string(s, additional_chars=None):
     if additional_chars is None:
         additional_chars = []
     for invalid_char in [" ", ": "] + additional_chars:
@@ -1185,7 +1185,7 @@ def validate_string(s: str, additional_chars: list[str] = None) -> str:
     return s
 
 
-def get_key_and_potential_value(s: str) -> tuple[str, str]:
+def get_key_and_potential_value(s):
     key = None
     value = None
     if s[-1] == ":":
@@ -1205,7 +1205,7 @@ def remove_redundant_slashes(path):
     return path.replace("//", "/").replace("/./", "/")
 
 
-def parse_volumes(lr: LineReader, cs: ComposeService):
+def parse_volumes(lr, cs):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:6] == "      " and lr.line[6] == "-":
@@ -1222,7 +1222,7 @@ def parse_volumes(lr: LineReader, cs: ComposeService):
     return cs
 
 
-def parse_environment(lr: LineReader, cs: ComposeService):
+def parse_environment(lr, cs):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:6] == "      " and lr.line[6] != " ":
@@ -1238,7 +1238,7 @@ def parse_environment(lr: LineReader, cs: ComposeService):
     return cs
 
 
-def parse_extends(lr: LineReader, cs: ComposeService):
+def parse_extends(lr, cs):
     lr.move_to_next_line()
     parent_csc = None
     parent_service_name = None
@@ -1281,7 +1281,7 @@ def parse_extends(lr: LineReader, cs: ComposeService):
     return parent_cs
 
 
-def state_individual_service(lr: LineReader, cs: ComposeService) -> ComposeService:
+def state_individual_service(lr, cs):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:4] == "    " and lr.line[4] != " ":
@@ -1314,7 +1314,7 @@ def state_individual_service(lr: LineReader, cs: ComposeService) -> ComposeServi
     return cs
 
 
-def state_root_services(lr: LineReader, csc: ComposeServiceContainer) -> ComposeServiceContainer:
+def state_root_services(lr, csc):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:2] == "  " and lr.line[2] != " ":
@@ -1330,7 +1330,7 @@ def state_root_services(lr: LineReader, csc: ComposeServiceContainer) -> Compose
     return csc
 
 
-def state_start(lr: LineReader, csc: ComposeServiceContainer) -> ComposeServiceContainer:
+def state_start(lr, csc):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line.startswith("services:"):
@@ -1342,7 +1342,7 @@ def state_start(lr: LineReader, csc: ComposeServiceContainer) -> ComposeServiceC
 # - main -------------------------------------------------------------------------------------------
 
 
-def parse() -> ComposeServiceContainer:
+def parse():
     parser = argparse.ArgumentParser(prog="apptainer_compose.py", description="Apptainer Compose")
     parser.add_argument("-f", "--file", help="file")
 
@@ -1373,7 +1373,7 @@ def parse() -> ComposeServiceContainer:
     return state_start(LineReader(args.file), csc)
 
 
-def execute(cmd_list: list[str]):
+def execute(cmd_list):
     result = subprocess.run(cmd_list)
     sys.exit(result.returncode)
 
