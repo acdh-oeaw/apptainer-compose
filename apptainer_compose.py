@@ -413,11 +413,11 @@ class DockerParser:
                     # Case 2: ['A=', '"1 2"'] --> A=1 2
                     if pieces:
                         nextone = pieces.pop(0)
-                    exports.append("%s%s" % (current, nextone))
+                    exports.append("export %s%s" % (current, nextone))
 
                 # Case 3: ['A=B']     --> A=B
                 elif "=" in current:
-                    exports.append(current)
+                    exports.append("export " + current)
 
                 # Case 4: ENV \\
                 elif current.endswith("\\"):
@@ -426,7 +426,7 @@ class DockerParser:
                 # Case 5: ['A', 'B']  --> A=B
                 else:
                     nextone = pieces.pop(0)
-                    exports.append("%s=%s" % (current, nextone))
+                    exports.append("export %s=%s" % (current, nextone))
 
         return exports
 
