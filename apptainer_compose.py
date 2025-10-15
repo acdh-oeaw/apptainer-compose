@@ -1345,6 +1345,8 @@ def state_start(lr, csc):
 def parse():
     parser = argparse.ArgumentParser(prog="apptainer_compose.py", description="Apptainer Compose")
     parser.add_argument("-f", "--file", help="file")
+    parser.add_argument("-v", "--verbose", action="store_true", help="verbose")
+    parser.add_argument("--dry-run", action="store_true", help="dry run")
 
     subparsers = parser.add_subparsers(dest="COMMAND")
 
@@ -1361,12 +1363,13 @@ def parse():
     args = parser.parse_args()
     if args.file is None:
         args.file = "compose.yaml"
-    print(f"COMMAND: {args.COMMAND}")
-    print(f"file: {args.file}")
-    if args.COMMAND == "run":
-        print(args.run_command)
-    if args.COMMAND == "up":
-        print(f"writable-tmpfs: {args.writable_tmpfs}")
+    if args.verbose:
+        print(f"COMMAND: {args.COMMAND}")
+        print(f"file: {args.file}")
+        if args.COMMAND == "run":
+            print(args.run_command)
+        if args.COMMAND == "up":
+            print(f"writable-tmpfs: {args.writable_tmpfs}")
 
     csc = ComposeServiceContainer()
     csc.args = args
@@ -1383,10 +1386,12 @@ def main():
     for cs in csc.compose_services:
         if csc.args.COMMAND == "build":
             convert_dockerfile_to_apptainer(cs.build, cs.def_file)
-        print(cs.name)
-        print(cs)
+        if csc.args.verbose:
+            print(cs.name)
+            print(cs)
         print(cs.command_to_str(csc.args))
-        execute(cs.command_to_list(csc.args))
+        if not csc.args.dry_run:
+            execute(cs.command_to_list(csc.args))
 
 
 if __name__ == "__main__":
