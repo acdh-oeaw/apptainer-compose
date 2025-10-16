@@ -1,0 +1,4 @@
+
+services:
+  valid_up_and_build:
+    build: .

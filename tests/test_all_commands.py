@@ -55,6 +55,7 @@ tests_target_list = [
             + "docker://alpine:latest cat /out_parent_1/compose.yaml"
         ),
     ),
+    ("valid_up_and_build", "apptainer run valid_up_and_build.sif"),
     ("valid_veld", 'apptainer run docker://alpine:latest echo "valid_veld"'),
     (
         "valid_writable_tmpfs",

@@ -6,8 +6,7 @@ import re
 import subprocess
 import sys
 import warnings
-from argparse import Namespace
-from collections.abc import Generator
+from copy import copy
 from copy import deepcopy
 
 
@@ -1376,22 +1375,30 @@ def parse():
     return state_start(LineReader(args.file), csc)
 
 
-def execute(cmd_list):
-    result = subprocess.run(cmd_list)
-    sys.exit(result.returncode)
+def execute(cs, args):
+    if args.verbose:
+        print(cs.name)
+        print(cs)
+    print(cs.command_to_str(args))
+    if not args.dry_run:
+        cmd_as_list = cs.command_to_list(args)
+        subprocess.run(cmd_as_list)
 
 
 def main():
     csc = parse()
     for cs in csc.compose_services:
-        if csc.args.COMMAND == "build":
+        if csc.args.COMMAND == "build" or (
+            csc.args.COMMAND == "up"
+            and not csc.args.dry_run
+            and cs.sif_file is not None
+            and not os.path.exists(cs.sif_file)
+        ):
             convert_dockerfile_to_apptainer(cs.build, cs.def_file)
-        if csc.args.verbose:
-            print(cs.name)
-            print(cs)
-        print(cs.command_to_str(csc.args))
-        if not csc.args.dry_run:
-            execute(cs.command_to_list(csc.args))
+            build_args = copy(csc.args)
+            build_args.COMMAND = "build"
+            execute(cs, build_args)
+        execute(cs, csc.args)
 
 
 if __name__ == "__main__":
