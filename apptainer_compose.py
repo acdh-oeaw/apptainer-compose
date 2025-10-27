@@ -1038,7 +1038,7 @@ class SingularityWriter:
         return section
 
 
-def convert_dockerfile_to_apptainer(in_docker_context: str, out_apptainer_file: str):
+def convert_dockerfile_to_apptainer(in_docker_context, out_apptainer_file):
     for file in os.listdir(in_docker_context):
         if file == "Dockerfile":
             in_docker_file = remove_redundant_slashes(in_docker_context + "/" + file)
