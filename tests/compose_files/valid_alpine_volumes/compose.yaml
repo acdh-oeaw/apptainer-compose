@@ -1,10 +1,6 @@
 
 services:
-
-
   valid_alpine_volumes:
-
-#    image: alpine:latest
     image: alpine:latest
     command: ls /mount
     volumes:
