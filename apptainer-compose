@@ -1342,7 +1342,7 @@ def state_start(lr, csc):
 
 
 def parse():
-    parser = argparse.ArgumentParser(prog="apptainer_compose.py", description="Apptainer Compose")
+    parser = argparse.ArgumentParser(prog="apptainer-compose", description="Apptainer Compose")
     parser.add_argument("-f", "--file", help="file")
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose")
     parser.add_argument("--dry-run", action="store_true", help="dry run")

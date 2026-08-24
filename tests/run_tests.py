@@ -1,10 +1,14 @@
 import os
 import sys
+from importlib import util
+from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from apptainer_compose import parse, ParsingError
+# sys.path.insert(0, str(Path(__file__).parent.parent))
+apptainer_main_path = Path(__file__).resolve().parent.parent / "apptainer-compose"
+spec = util.spec_from_file_location("apptainer_compose", apptainer_main_path, loader=SourceFileLoader("apptainer_compose", str(apptainer_main_path)))
+apptainer_compose = util.module_from_spec(spec)
+spec.loader.exec_module(apptainer_compose)
 
 
 tests_target_list = [
@@ -73,14 +77,14 @@ def main(tests_target_list):
             command_counter = 0
             for line in f.readlines():
                 sys.argv = None
-                if line.startswith("../../../apptainer_compose.py"):
+                if line.startswith("../../../apptainer-compose"):
                     sys.argv = line.split()
                     try:
                         print(f"{sys.argv=}")
-                        csc = parse()
+                        csc = apptainer_compose.parse()
                         cs = csc.compose_services[0]
                         parsed_command = cs.command_to_str(csc.args)
-                    except ParsingError as ex:
+                    except apptainer_compose.ParsingError as ex:
                         print(ex)
                         parsed_command = None
                     if type(target) in [str, type(None)]:
