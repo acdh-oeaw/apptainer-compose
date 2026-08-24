@@ -892,8 +892,8 @@ class SingularityWriter:
                 recipe += self.finish_section(runscript, "runscript")
                 recipe += self.finish_section(runscript, "startscript")
 
-                if parser.test is not None:
-                    recipe += self.finish_section(parser.test, "test")
+                if parser.main is not None:
+                    recipe += self.finish_section(parser.main, "test")
             count += 1
 
         # Clean up extra white spaces
