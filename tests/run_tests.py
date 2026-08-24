@@ -64,7 +64,7 @@ tests_target_list = [
 ]
 
 
-def main_test(tests_target_list):
+def main(tests_target_list):
     for folder, target in tests_target_list:
         print("-----------------------------------------------------------")
         print(f"{folder=}")
@@ -96,4 +96,4 @@ def main_test(tests_target_list):
 
 
 if __name__ == "__main__":
-    main_test(tests_target_list)
+    main(tests_target_list)
