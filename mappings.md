@@ -77,6 +77,20 @@ target:
 apptainer-compose -f foo.yaml up
 ```
 
+- env vars from host
+
+status: open
+
+source:
+```
+export FOO=BAR
+docker compose up
+```
+target:
+```
+apptainer-compose up
+```
+
 ### not mapped
 
 ## apptainer cli
