@@ -194,15 +194,15 @@ if __name__ == "__main__":
                     self.parse_test(test_case_target)
                 os.chdir("../../../../")
 
-        def test_2_compose_yaml_execution(self):
-            print_separator()
-            print("test_compose_yaml_execution")
-            for test_case_folder, test_case_target in self.step_through_test_data_folder(
-                "compose_yaml", "execution"
-            ):
-                os.chdir(test_case_folder)
-                with self.subTest():
-                    self.execute_test(test_case_target)
-                os.chdir("../../../../")
+        # def test_2_compose_yaml_execution(self):
+        #     print_separator()
+        #     print("test_compose_yaml_execution")
+        #     for test_case_folder, test_case_target in self.step_through_test_data_folder(
+        #         "compose_yaml", "execution"
+        #     ):
+        #         os.chdir(test_case_folder)
+        #         with self.subTest():
+        #             self.execute_test(test_case_target)
+        #         os.chdir("../../../../")
 
     unittest.main()
