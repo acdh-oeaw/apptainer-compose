@@ -1198,6 +1198,8 @@ def get_key_and_potential_value(s):
         value = key_value_list[1].lstrip()
         if value == "" or value.isspace():
             value = None
+    if value is not None:
+        value = value.replace("$$", "$")
     return key, value
 
 
