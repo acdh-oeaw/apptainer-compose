@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import warnings
@@ -1293,7 +1294,7 @@ def state_individual_service(lr, cs):
                     cs.def_file = cs.name + ".def"
                     cs.sif_file = cs.name + ".sif"
             elif key == "command":
-                cs.run_command = value.split(" ")
+                cs.run_command = shlex.split(value)
             elif key == "volumes":
                 if value is None:
                     cs = parse_volumes(lr, cs)
