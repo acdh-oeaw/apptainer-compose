@@ -26,13 +26,13 @@ def modify_compose_yaml_for_execution(example_section, example_case, example_sou
         elif example_case == "services_service_environment":
             example_source_new = (
                 example_source_1
-                + '\n    command: sh -c \'if [ "$$FOO" = "BAR" ]; then echo "success"; else failure; fi\'\n'
+                + '\n    command: sh -c \'if [ "$$FOO" = "BAR" ]; then echo "success"; else echo "failure"; fi\'\n'
                 + example_source_2
             )
         elif example_case == "services_service_volumes":
             example_source_new = (
                 example_source_1
-                + '\n    command: sh -c \'if [ -f "/foo/compose.yaml" ]; then echo "success"; else "failure"; fi\'\n'
+                + '\n    command: sh -c \'if [ -f "/foo/compose.yaml" ]; then echo "success"; else echo "failure"; fi\'\n'
                 + example_source_2
             )
     return example_source_new
