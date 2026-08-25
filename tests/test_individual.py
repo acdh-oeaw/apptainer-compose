@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 from importlib import util
 from importlib.machinery import SourceFileLoader
@@ -12,6 +13,6 @@ spec.loader.exec_module(apptainer_compose)
 
 
 sys.argv = None
-os.chdir("./test_cases/compose_yaml/execution/services_service_command/")
+os.chdir("./test_cases/compose_yaml/execution/services_service_environment")
 sys.argv = ["../apptainer-compose", "--verbose", "up"]
 apptainer_compose.main()
