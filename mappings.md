@@ -25,11 +25,11 @@ source:
 services:
   apptainer_compose_test:
     image: alpine:latest
-    command: echo "success"
+    command: echo success
 ```
 target:
 ```
-apptainer run docker://alpine:latest echo "success"
+apptainer run docker://alpine:latest echo success
 ```
 
 - services:<service>:environment
@@ -47,7 +47,7 @@ target:
 apptainer run --env FOO='BAR' docker://alpine:latest
 ```
 
-        ### not mapped
+### not mapped
 
 - networks
 
