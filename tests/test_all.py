@@ -160,17 +160,32 @@ if __name__ == "__main__":
             print(f"{parsed_command=}")
             self.assertEqual(parsed_command, test_case_target)
 
-        def execute_test(self, test_case_target):
+        def execute_apptainer(self):
             result = subprocess.run(
                 ["../../../../../apptainer-compose", "up"],
                 capture_output=True,
                 text=True
             )
-            print(result)
-            # output = result.stdout[:-1]
-            # print(f"{test_case_target=}")
-            # print(f"{output=}")
-            # self.assertEqual(output, test_case_target)
+            print(f"{result.stderr=}")
+            print(f"{result.stdout=}")
+            outcome = result.stdout.split("\n")[1]
+            self.assertEqual(outcome, "success")
+
+        def execute_docker(self):
+            result = subprocess.run(
+                ["docker-compose", "up"],
+                capture_output=True,
+                text=True
+            )
+            print(f"{result.stderr=}")
+            print(f"{result.stdout=}")
+            out_split = result.stdout.split("\n")
+            outcome = out_split[1].split(" | ")[1]
+            self.assertEqual(outcome, "success")
+
+        def execute_test(self):
+            self.execute_apptainer()
+            self.execute_docker()
 
         def step_through_test_data_folder(self, test_section_selected, test_kind_selected):
             for test_case_data in step_through_test_data(test_data):
@@ -194,15 +209,15 @@ if __name__ == "__main__":
                     self.parse_test(test_case_target)
                 os.chdir("../../../../")
 
-        # def test_2_compose_yaml_execution(self):
-        #     print_separator()
-        #     print("test_compose_yaml_execution")
-        #     for test_case_folder, test_case_target in self.step_through_test_data_folder(
-        #         "compose_yaml", "execution"
-        #     ):
-        #         os.chdir(test_case_folder)
-        #         with self.subTest():
-        #             self.execute_test(test_case_target)
-        #         os.chdir("../../../../")
+        def test_2_compose_yaml_execution(self):
+            print_separator()
+            print("test_compose_yaml_execution")
+            for test_case_folder, test_case_target in self.step_through_test_data_folder(
+                "compose_yaml", "execution"
+            ):
+                os.chdir(test_case_folder)
+                with self.subTest():
+                    self.execute_test()
+                os.chdir("../../../../")
 
     unittest.main()
