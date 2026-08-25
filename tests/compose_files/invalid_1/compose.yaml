@@ -1,4 +1,0 @@
-
-services:
-  invalid:name:
-    image: alpine:latest

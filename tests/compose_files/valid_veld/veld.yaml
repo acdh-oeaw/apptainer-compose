@@ -1,5 +1,0 @@
-
-services:
-  valid_veld:
-    image: alpine:latest
-    command: echo "valid_veld"
