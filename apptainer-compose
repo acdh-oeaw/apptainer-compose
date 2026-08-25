@@ -892,8 +892,8 @@ class SingularityWriter:
                 recipe += self.finish_section(runscript, "runscript")
                 recipe += self.finish_section(runscript, "startscript")
 
-                if parser.main is not None:
-                    recipe += self.finish_section(parser.main, "test")
+                if parser.prepare is not None:
+                    recipe += self.finish_section(parser.prepare, "test")
             count += 1
 
         # Clean up extra white spaces
@@ -1341,7 +1341,7 @@ def state_start(lr, csc):
 # - main -------------------------------------------------------------------------------------------
 
 
-def parse():
+def parse_args():
     parser = argparse.ArgumentParser(prog="apptainer-compose", description="Apptainer Compose")
     parser.add_argument("-f", "--file", help="file")
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose")
@@ -1369,7 +1369,10 @@ def parse():
             print(args.run_command)
         if args.COMMAND == "up":
             print(f"writable-tmpfs: {args.writable_tmpfs}")
+    return args
 
+
+def parse_compose(args):
     csc = ComposeServiceContainer()
     csc.args = args
     return state_start(LineReader(args.file), csc)
@@ -1386,7 +1389,8 @@ def execute(cs, args):
 
 
 def main():
-    csc = parse()
+    args = parse_args()
+    csc = parse_compose(args)
     for cs in csc.compose_services:
         if csc.args.COMMAND == "build" or (
             csc.args.COMMAND == "up"
