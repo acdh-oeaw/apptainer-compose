@@ -1,0 +1,6 @@
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    command: sh -c 'if [ -f "/foo/compose.yaml" ]; then echo "success"; else "failure"; fi'
+    volumes:
+      - ./:/foo

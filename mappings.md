@@ -11,11 +11,11 @@ services:
   apptainer_compose_test:
     image: alpine:latest
     volumes:
-      - foo:/bar
+      - ./:/foo
 ```
 target:
 ```
-apptainer run --bind foo:/bar docker://alpine:latest
+apptainer run --bind ./:/foo docker://alpine:latest
 ```
 
 - services:<service>:command
