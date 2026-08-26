@@ -7,7 +7,7 @@ Each status can be one of:
 
 ## compose yaml
 
-### services:<service>:volumes
+### services:\<service>:volumes
 
 status: open
 
@@ -24,7 +24,7 @@ target:
 apptainer run --bind ./:/foo docker://alpine:latest
 ```
 
-### services:<service>:command
+### services:\<service>:command
 
 status: open
 
@@ -40,7 +40,7 @@ target:
 apptainer run docker://alpine:latest echo success
 ```
 
-### services:<service>:environment
+### services:\<service>:environment
 
 status: open
 
