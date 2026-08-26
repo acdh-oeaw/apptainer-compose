@@ -159,11 +159,6 @@ def create_test_files():
                 f.write(test_case.source)
 
 
-def prepare():
-    extract_test_data()
-    create_test_files()
-
-
 def print_separator(title=None):
     print("------------------------------------------")
     if title is not None:
@@ -175,7 +170,8 @@ class Test(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        prepare()
+        extract_test_data()
+        create_test_files()
 
 
     def evaluate_and_assert(self, source, target):
