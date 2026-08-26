@@ -9,7 +9,7 @@ Each status can be one of:
 
 ### services:\<service>:volumes
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -26,7 +26,7 @@ apptainer run --bind ./:/foo docker://alpine:latest
 
 ### services:\<service>:command
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -42,7 +42,7 @@ apptainer run docker://alpine:latest echo success
 
 ### services:\<service>:environment
 
-status: open
+status: tests passed
 
 source:
 ```

@@ -14,6 +14,41 @@ apptainer_compose = util.module_from_spec(spec)
 spec.loader.exec_module(apptainer_compose)
 
 
+class TestCase:
+    section = None
+    kind = None
+    id = None
+    name = None
+    folder = None
+    source = None
+    target = None
+    evaluation = None
+
+
+    def __init__(
+        self,
+        section=None,
+        kind=None,
+        id=None,
+        name=None,
+        folder=None,
+        source=None,
+        target=None,
+        evaluation=None,
+    ):
+        self.section = section
+        self.kind = kind
+        self.id = id
+        self.name = name
+        self.folder = folder
+        self.source = source
+        self.target = target
+        self.evaluation = evaluation
+
+
+test_case_list = []
+
+
 def modify_compose_yaml_for_execution(example_section, example_case, example_source):
     example_source_new = example_source
     if example_section == "compose_yaml":
@@ -37,27 +72,35 @@ def modify_compose_yaml_for_execution(example_section, example_case, example_sou
     return example_source_new
 
 
-def create_test_case_data(test_data, example_section, example_case, example_source, example_target):
-    test_data_section = test_data.get(example_section, {})
+def create_test_case_data(
+    example_section,
+    example_case_id,
+    example_case_name,
+    example_source,
+    example_target,
+):
     for kind in ["parsing", "execution"]:
-        test_data_kind = test_data_section.get(kind, {})
-        test_folder_parsing = "test_cases/" + example_section + "/" + kind + "/" + example_case
+        test_folder_parsing = "test_cases/" + example_section + "/" + kind + "/" + example_case_id
         if kind == "execution":
             example_source = modify_compose_yaml_for_execution(
                 example_section,
-                example_case,
+                example_case_id,
                 example_source,
             )
-        test_data_kind[example_case] = test_folder_parsing, example_source, example_target
-        test_data_section[kind] = test_data_kind
-        test_data[example_section] = test_data_section
-    return test_data
-
+        test_case_list.append(TestCase(
+            section=example_section,
+            kind=kind,
+            id=example_case_id,
+            name=example_case_name,
+            folder=test_folder_parsing,
+            source=example_source,
+            target=example_target,
+        ))
 
 def extract_test_data():
-    test_data = {}
     example_section = None
-    example_case = None
+    example_case_id = None
+    example_case_name = None
     example_source = None
     example_target = None
     tick_counter = 0
@@ -68,8 +111,9 @@ def extract_test_data():
                 continue
             if example_section:
                 if line.startswith("### "):
-                    example_case = line[4:-1].replace(":\\<", "_").replace(">:", "_")
-            if example_case:
+                    example_case_name = line
+                    example_case_id = line[4:-1].replace(":\\<", "_").replace(">:", "_")
+            if example_case_id:
                 if line.startswith("status: "):
                     if line.endswith("not implemented"):
                         continue
@@ -91,54 +135,33 @@ def extract_test_data():
                 if tick_counter == 2:
                     tick_counter = 0
                     if example_target is not None:
-                        test_data = create_test_case_data(
-                            test_data,
+                        create_test_case_data(
                             example_section,
-                            example_case,
+                            example_case_id,
+                            example_case_name,
                             example_source,
                             example_target,
                         )
-                        example_case = None
+                        example_case_id = None
                         example_source = None
                         example_target = None
                     continue
-    return test_data
 
 
-def step_through_test_data(test_data):
-    for test_section, test_kind_dict in test_data.items():
-        for test_kind, test_case_dict in test_kind_dict.items():
-            for test_case_name, test_case_data in test_case_dict.items():
-                test_case_folder, test_case_source, test_case_target = test_case_data
-                yield (
-                    test_section,
-                    test_kind,
-                    test_case_name,
-                    test_case_folder,
-                    test_case_source,
-                    test_case_target,
-                )
-
-
-def create_test_files(test_data):
+def create_test_files():
     test_case_folder_all = "./test_cases"
     shutil.rmtree(test_case_folder_all, ignore_errors=True)
     os.makedirs(test_case_folder_all)
-    for test_case_data in step_through_test_data(test_data):
-        test_section = test_case_data[0]
-        test_case_folder = test_case_data[3]
-        test_case_source = test_case_data[4]
-        # if test_section != "compose_cli":
-        if test_section == "compose_yaml":
-            os.makedirs(test_case_folder)
-            with open(test_case_folder + "/compose.yaml", "w") as f:
-                f.write(test_case_source)
+    for test_case in test_case_list:
+        if test_case.section == "compose_yaml":
+            os.makedirs(test_case.folder)
+            with open(test_case.folder + "/compose.yaml", "w") as f:
+                f.write(test_case.source)
 
 
 def prepare():
-    test_data = extract_test_data()
-    create_test_files(test_data)
-    return test_data
+    extract_test_data()
+    create_test_files()
 
 
 def print_separator(title=None):
@@ -148,17 +171,18 @@ def print_separator(title=None):
 
 
 if __name__ == "__main__":
-    test_data = prepare()
+    prepare()
 
     class Test(unittest.TestCase):
 
         def evaluate_and_assert(self, source, target):
-            condition = source == target
-            if condition:
+            evaluation = source == target
+            if evaluation:
                 print("success")
             else:
                 print("failure")
-            self.assertTrue(condition)
+            self.assertTrue(evaluation)
+            return evaluation
 
         def parse_test(self, test_case_target):
             args = argparse.Namespace(file="compose.yaml", COMMAND="up", dry_run=True, writable_tmpfs=False)
@@ -167,8 +191,7 @@ if __name__ == "__main__":
             parsed_command = cs.command_to_str(csc.args)
             print(f"{test_case_target=}")
             print(f"{parsed_command=}")
-            # self.assertEqual(parsed_command, test_case_target)
-            self.evaluate_and_assert(parsed_command, test_case_target)
+            return self.evaluate_and_assert(parsed_command, test_case_target)
 
         def execute_apptainer(self):
             result = subprocess.run(
@@ -179,7 +202,7 @@ if __name__ == "__main__":
             print(f"{result.stderr=}")
             print(f"{result.stdout=}")
             outcome = result.stdout.split("\n")[1]
-            self.evaluate_and_assert(outcome, "success")
+            return self.evaluate_and_assert(outcome, "success")
 
         def execute_docker(self):
             result = subprocess.run(
@@ -191,26 +214,23 @@ if __name__ == "__main__":
             print(f"{result.stdout=}")
             out_split = result.stdout.split("\n")
             outcome = out_split[1].split(" | ")[1]
-            self.evaluate_and_assert(outcome, "success")
+            return self.evaluate_and_assert(outcome, "success")
 
         def execute_test(self):
-            self.execute_apptainer()
-            self.execute_docker()
+            evaluation_1 = self.execute_apptainer()
+            evaluation_2 = self.execute_docker()
+            return evaluation_1 and evaluation_2
 
         def step_through_and_execute_tests(self, test_section_selected, test_kind_selected):
-            for test_case_data in step_through_test_data(test_data):
-                test_section = test_case_data[0]
-                test_kind = test_case_data[1]
-                test_case_folder = test_case_data[3]
-                test_case_target= test_case_data[5]
-                if test_section == test_section_selected and test_kind == test_kind_selected:
-                    print_separator(test_case_folder)
-                    os.chdir(test_case_folder)
+            for test_case in test_case_list:
+                if test_case.section == test_section_selected and test_case.kind == test_kind_selected:
+                    print_separator(test_case.folder)
+                    os.chdir(test_case.folder)
                     with self.subTest():
                         if test_kind_selected == "parsing":
-                            self.parse_test(test_case_target)
+                            test_case.evaluation = self.parse_test(test_case.target)
                         elif test_kind_selected == "execution":
-                            self.execute_test()
+                            test_case.evaluation = self.execute_test()
                     os.chdir("../../../../")
 
         def test_1_compose_yaml_parsing(self):
@@ -220,5 +240,34 @@ if __name__ == "__main__":
         def test_2_compose_yaml_execution(self):
             print_separator("test_2_compose_yaml_execution")
             self.step_through_and_execute_tests("compose_yaml", "execution")
+
+        @classmethod
+        def tearDownClass(cls):
+            content = ""
+            with open("../mappings.md", "r") as f:
+                has_test_result = False
+                for line in f:
+                    if line.startswith("### "):
+                        content += line
+                        all_test_passed = None
+                        for test_case in test_case_list:
+                            if line == test_case.name:
+                                if test_case.evaluation is not None:
+                                    if all_test_passed is None:
+                                        all_test_passed = test_case.evaluation
+                                    else:
+                                        all_test_passed = all_test_passed and test_case.evaluation
+                        if all_test_passed is not None:
+                            has_test_result = True
+                    elif has_test_result and line.startswith("status: "):
+                        if all_test_passed:
+                            content += "status: tests passed\n"
+                        else:
+                            content += "status: tests failed\n"
+                        has_test_result = False
+                    else:
+                        content += line
+            with open("../mappings.md", "w") as f:
+                f.write(content)
 
     unittest.main()
