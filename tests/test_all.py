@@ -187,9 +187,7 @@ class Test(unittest.TestCase):
         return evaluation
 
     def parse_test(self, test_case_target):
-        args = argparse.Namespace(
-            file="compose.yaml", COMMAND="up", dry_run=True, writable_tmpfs=False
-        )
+        args = argparse.Namespace(file="compose.yaml", COMMAND="up", dry_run=True)
         csc = apptainer_compose.parse_compose(args)
         cs = csc.compose_services[0]
         parsed_command = cs.command_to_str(csc.args)
