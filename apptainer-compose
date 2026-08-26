@@ -1349,11 +1349,8 @@ def parse_args():
     parser.add_argument("--dry-run", action="store_true", help="dry run")
 
     subparsers = parser.add_subparsers(dest="COMMAND")
-
     up_parser = subparsers.add_parser("up", help="Start services")
-
     subparsers.add_parser("build", help="Stop services")
-
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")
     run_parser.add_argument("run_command", nargs="*", help="Command and arguments to run")
