@@ -67,13 +67,13 @@ def extract_test_data():
             if line in ["## compose yaml\n", "## compose cli\n", "## apptainer cli\n"]:
                 example_section = line[3:-1].replace(" ", "_")
                 continue
-            if line == "### not mapped\n":
-                example_section = None
-                continue
             if example_section:
-                if line.startswith("- "):
-                    example_case = line[2:-1].replace(":<", "_").replace(">:", "_")
+                if line.startswith("### "):
+                    example_case = line[4:-1].replace(":\\<", "_").replace(">:", "_")
             if example_case:
+                if line.startswith("status: "):
+                    if line.endswith("not implemented"):
+                        continue
                 if line == "source:\n":
                     example_source = ""
                     continue
