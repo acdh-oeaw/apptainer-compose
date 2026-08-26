@@ -170,104 +170,113 @@ def print_separator(title=None):
         print(title)
 
 
-if __name__ == "__main__":
-    prepare()
+class Test(unittest.TestCase):
 
-    class Test(unittest.TestCase):
 
-        def evaluate_and_assert(self, source, target):
-            evaluation = source == target
-            if evaluation:
-                print("success")
-            else:
-                print("failure")
-            self.assertTrue(evaluation)
-            return evaluation
+    @classmethod
+    def setUpClass(cls):
+        prepare()
 
-        def parse_test(self, test_case_target):
-            args = argparse.Namespace(file="compose.yaml", COMMAND="up", dry_run=True, writable_tmpfs=False)
-            csc = apptainer_compose.parse_compose(args)
-            cs = csc.compose_services[0]
-            parsed_command = cs.command_to_str(csc.args)
-            print(f"{test_case_target=}")
-            print(f"{parsed_command=}")
-            return self.evaluate_and_assert(parsed_command, test_case_target)
 
-        def execute_apptainer(self):
-            result = subprocess.run(
-                ["../../../../../apptainer-compose", "up"],
-                capture_output=True,
-                text=True
-            )
-            print(f"{result.stderr=}")
-            print(f"{result.stdout=}")
-            outcome = result.stdout.split("\n")[1]
-            return self.evaluate_and_assert(outcome, "success")
+    def evaluate_and_assert(self, source, target):
+        evaluation = source == target
+        if evaluation:
+            print("success")
+        else:
+            print("failure")
+        self.assertTrue(evaluation)
+        return evaluation
 
-        def execute_docker(self):
-            result = subprocess.run(
-                ["docker-compose", "up"],
-                capture_output=True,
-                text=True
-            )
-            print(f"{result.stderr=}")
-            print(f"{result.stdout=}")
-            out_split = result.stdout.split("\n")
-            outcome = out_split[1].split(" | ")[1]
-            return self.evaluate_and_assert(outcome, "success")
 
-        def execute_test(self):
-            evaluation_1 = self.execute_apptainer()
-            evaluation_2 = self.execute_docker()
-            return evaluation_1 and evaluation_2
+    def parse_test(self, test_case_target):
+        args = argparse.Namespace(file="compose.yaml", COMMAND="up", dry_run=True, writable_tmpfs=False)
+        csc = apptainer_compose.parse_compose(args)
+        cs = csc.compose_services[0]
+        parsed_command = cs.command_to_str(csc.args)
+        print(f"{test_case_target=}")
+        print(f"{parsed_command=}")
+        return self.evaluate_and_assert(parsed_command, test_case_target)
 
-        def step_through_and_execute_tests(self, test_section_selected, test_kind_selected):
-            for test_case in test_case_list:
-                if test_case.section == test_section_selected and test_case.kind == test_kind_selected:
-                    print_separator(test_case.folder)
-                    os.chdir(test_case.folder)
-                    with self.subTest():
-                        if test_kind_selected == "parsing":
-                            test_case.evaluation = self.parse_test(test_case.target)
-                        elif test_kind_selected == "execution":
-                            test_case.evaluation = self.execute_test()
-                    os.chdir("../../../../")
 
-        def test_1_compose_yaml_parsing(self):
-            print_separator("test_1_compose_yaml_parsing")
-            self.step_through_and_execute_tests("compose_yaml", "parsing")
+    def execute_apptainer(self):
+        result = subprocess.run(
+            ["../../../../../apptainer-compose", "up"],
+            capture_output=True,
+            text=True
+        )
+        print(f"{result.stderr=}")
+        print(f"{result.stdout=}")
+        outcome = result.stdout.split("\n")[1]
+        return self.evaluate_and_assert(outcome, "success")
 
-        def test_2_compose_yaml_execution(self):
-            print_separator("test_2_compose_yaml_execution")
-            self.step_through_and_execute_tests("compose_yaml", "execution")
 
-        @classmethod
-        def tearDownClass(cls):
-            content = ""
-            with open("../mappings.md", "r") as f:
-                has_test_result = False
-                for line in f:
-                    if line.startswith("### "):
-                        content += line
-                        all_test_passed = None
-                        for test_case in test_case_list:
-                            if line == test_case.name:
-                                if test_case.evaluation is not None:
-                                    if all_test_passed is None:
-                                        all_test_passed = test_case.evaluation
-                                    else:
-                                        all_test_passed = all_test_passed and test_case.evaluation
-                        if all_test_passed is not None:
-                            has_test_result = True
-                    elif has_test_result and line.startswith("status: "):
-                        if all_test_passed:
-                            content += "status: tests passed\n"
-                        else:
-                            content += "status: tests failed\n"
-                        has_test_result = False
+    def execute_docker(self):
+        result = subprocess.run(
+            ["docker-compose", "up"],
+            capture_output=True,
+            text=True
+        )
+        print(f"{result.stderr=}")
+        print(f"{result.stdout=}")
+        out_split = result.stdout.split("\n")
+        outcome = out_split[1].split(" | ")[1]
+        return self.evaluate_and_assert(outcome, "success")
+
+
+    def execute_test(self):
+        evaluation_1 = self.execute_apptainer()
+        evaluation_2 = self.execute_docker()
+        return evaluation_1 and evaluation_2
+
+
+    def step_through_and_execute_tests(self, test_section_selected, test_kind_selected):
+        for test_case in test_case_list:
+            if test_case.section == test_section_selected and test_case.kind == test_kind_selected:
+                print_separator(test_case.folder)
+                os.chdir(test_case.folder)
+                with self.subTest():
+                    if test_kind_selected == "parsing":
+                        test_case.evaluation = self.parse_test(test_case.target)
+                    elif test_kind_selected == "execution":
+                        test_case.evaluation = self.execute_test()
+                os.chdir("../../../../")
+
+
+    def test_1_compose_yaml_parsing(self):
+        print_separator("test_1_compose_yaml_parsing")
+        self.step_through_and_execute_tests("compose_yaml", "parsing")
+
+
+    def test_2_compose_yaml_execution(self):
+        print_separator("test_2_compose_yaml_execution")
+        self.step_through_and_execute_tests("compose_yaml", "execution")
+
+
+    @classmethod
+    def tearDownClass(cls):
+        content = ""
+        with open("../mappings.md", "r") as f:
+            has_test_result = False
+            for line in f:
+                if line.startswith("### "):
+                    content += line
+                    all_test_passed = None
+                    for test_case in test_case_list:
+                        if line == test_case.name:
+                            if test_case.evaluation is not None:
+                                if all_test_passed is None:
+                                    all_test_passed = test_case.evaluation
+                                else:
+                                    all_test_passed = all_test_passed and test_case.evaluation
+                    if all_test_passed is not None:
+                        has_test_result = True
+                elif has_test_result and line.startswith("status: "):
+                    if all_test_passed:
+                        content += "status: tests passed\n"
                     else:
-                        content += line
-            with open("../mappings.md", "w") as f:
-                f.write(content)
-
-    unittest.main()
+                        content += "status: tests failed\n"
+                    has_test_result = False
+                else:
+                    content += line
+        with open("../mappings.md", "w") as f:
+            f.write(content)
