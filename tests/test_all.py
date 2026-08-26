@@ -7,9 +7,12 @@ from importlib import util
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
-
 apptainer_main_path = Path(__file__).resolve().parent.parent / "apptainer-compose"
-spec = util.spec_from_file_location("apptainer_compose", apptainer_main_path, loader=SourceFileLoader("apptainer_compose", str(apptainer_main_path)))
+spec = util.spec_from_file_location(
+    "apptainer_compose",
+    apptainer_main_path,
+    loader=SourceFileLoader("apptainer_compose", str(apptainer_main_path)),
+)
 apptainer_compose = util.module_from_spec(spec)
 spec.loader.exec_module(apptainer_compose)
 
@@ -23,7 +26,6 @@ class TestCase:
     source = None
     target = None
     evaluation = None
-
 
     def __init__(
         self,
@@ -87,15 +89,18 @@ def create_test_case_data(
                 example_case_id,
                 example_source,
             )
-        test_case_list.append(TestCase(
-            section=example_section,
-            kind=kind,
-            id=example_case_id,
-            name=example_case_name,
-            folder=test_folder_parsing,
-            source=example_source,
-            target=example_target,
-        ))
+        test_case_list.append(
+            TestCase(
+                section=example_section,
+                kind=kind,
+                id=example_case_id,
+                name=example_case_name,
+                folder=test_folder_parsing,
+                source=example_source,
+                target=example_target,
+            )
+        )
+
 
 def extract_test_data():
     example_section = None
@@ -125,7 +130,7 @@ def extract_test_data():
                     continue
                 if line == "```\n":
                     tick_counter += 1
-                    if  tick_counter == 1:
+                    if tick_counter == 1:
                         continue
                 if tick_counter == 1:
                     if example_source is not None and example_target is None:
@@ -167,12 +172,10 @@ def print_separator(title=None):
 
 class Test(unittest.TestCase):
 
-
     @classmethod
     def setUpClass(cls):
         extract_test_data()
         create_test_files()
-
 
     def evaluate_and_assert(self, source, target):
         evaluation = source == target
@@ -183,9 +186,10 @@ class Test(unittest.TestCase):
         self.assertTrue(evaluation)
         return evaluation
 
-
     def parse_test(self, test_case_target):
-        args = argparse.Namespace(file="compose.yaml", COMMAND="up", dry_run=True, writable_tmpfs=False)
+        args = argparse.Namespace(
+            file="compose.yaml", COMMAND="up", dry_run=True, writable_tmpfs=False
+        )
         csc = apptainer_compose.parse_compose(args)
         cs = csc.compose_services[0]
         parsed_command = cs.command_to_str(csc.args)
@@ -193,37 +197,27 @@ class Test(unittest.TestCase):
         print(f"{parsed_command=}")
         return self.evaluate_and_assert(parsed_command, test_case_target)
 
-
     def execute_apptainer(self):
         result = subprocess.run(
-            ["../../../../../apptainer-compose", "up"],
-            capture_output=True,
-            text=True
+            ["../../../../../apptainer-compose", "up"], capture_output=True, text=True
         )
         print(f"{result.stderr=}")
         print(f"{result.stdout=}")
         outcome = result.stdout.split("\n")[1]
         return self.evaluate_and_assert(outcome, "success")
 
-
     def execute_docker(self):
-        result = subprocess.run(
-            ["docker-compose", "up"],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run(["docker-compose", "up"], capture_output=True, text=True)
         print(f"{result.stderr=}")
         print(f"{result.stdout=}")
         out_split = result.stdout.split("\n")
         outcome = out_split[1].split(" | ")[1]
         return self.evaluate_and_assert(outcome, "success")
 
-
     def execute_test(self):
         evaluation_1 = self.execute_apptainer()
         evaluation_2 = self.execute_docker()
         return evaluation_1 and evaluation_2
-
 
     def step_through_and_execute_tests(self, test_section_selected, test_kind_selected):
         for test_case in test_case_list:
@@ -237,16 +231,13 @@ class Test(unittest.TestCase):
                         test_case.evaluation = self.execute_test()
                 os.chdir("../../../../")
 
-
     def test_1_compose_yaml_parsing(self):
         print_separator("test_1_compose_yaml_parsing")
         self.step_through_and_execute_tests("compose_yaml", "parsing")
 
-
     def test_2_compose_yaml_execution(self):
         print_separator("test_2_compose_yaml_execution")
         self.step_through_and_execute_tests("compose_yaml", "execution")
-
 
     @classmethod
     def tearDownClass(cls):
