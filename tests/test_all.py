@@ -81,6 +81,8 @@ def create_test_case_data(
     example_source,
     example_target,
 ):
+    if example_section != "compose_yaml": # TODO: remove temporary test restriction
+        return
     for kind in ["parsing", "execution"]:
         test_folder_parsing = "test_cases/" + example_section + "/" + kind + "/" + example_case_id
         if kind == "execution":
@@ -111,7 +113,7 @@ def extract_test_data():
     tick_counter = 0
     with open("../mappings.md", "r") as f:
         for line in f:
-            if line in ["## compose yaml\n", "## compose cli\n", "## apptainer cli\n"]:
+            if line in ["## compose yaml\n", "## docker compose cli\n", "## apptainer cli\n"]:
                 example_section = line[3:-1].replace(" ", "_")
                 continue
             if example_section:

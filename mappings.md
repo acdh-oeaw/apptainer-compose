@@ -61,7 +61,7 @@ apptainer run --env FOO='BAR' docker://alpine:latest
 
 status: not implemented
 
-## compose cli
+## docker compose cli
 
 ### up
 
@@ -88,6 +88,14 @@ target:
 ```
 apptainer-compose -f foo.yaml up
 ```
+
+### -verbose
+
+status: open
+
+### --dry-run
+
+status: open
 
 ### env vars from host
 
