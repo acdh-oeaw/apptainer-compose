@@ -2,7 +2,6 @@ import argparse
 import os
 import shutil
 import subprocess
-import sys
 import unittest
 from importlib import util
 from importlib.machinery import SourceFileLoader
