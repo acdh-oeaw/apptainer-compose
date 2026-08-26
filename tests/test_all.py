@@ -16,7 +16,7 @@ spec.loader.exec_module(apptainer_compose)
 
 
 def modify_compose_yaml_for_execution(example_section, example_case, example_source):
-    example_source_new = example_source # TODO: delete this after all cases are handled
+    example_source_new = example_source
     if example_section == "compose_yaml":
         example_source_split = example_source.split("\n")
         example_source_1 = "\n".join(example_source_split[:3])
