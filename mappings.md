@@ -1,9 +1,15 @@
 
+Each status can be one of: 
+- status: tests passed
+- status: tests failed
+- status: open
+- status: not implemented
+
 ## compose yaml
 
-### mapped
+### services:<service>:volumes
 
-- services:<service>:volumes
+status: open
 
 source:
 ```
@@ -18,7 +24,9 @@ target:
 apptainer run --bind ./:/foo docker://alpine:latest
 ```
 
-- services:<service>:command
+### services:<service>:command
+
+status: open
 
 source:
 ```
@@ -32,7 +40,9 @@ target:
 apptainer run docker://alpine:latest echo success
 ```
 
-- services:<service>:environment
+### services:<service>:environment
+
+status: open
 
 source:
 ```
@@ -47,15 +57,15 @@ target:
 apptainer run --env FOO='BAR' docker://alpine:latest
 ```
 
-### not mapped
+### networks
 
-- networks
+status: not implemented
 
 ## compose cli
 
-### mapped
+### up
 
-- up
+status: open
 
 source:
 ```
@@ -66,7 +76,9 @@ target:
 apptainer run docker://alpine:latest
 ```
 
-- -f
+### -f
+
+status: open
 
 source:
 ```
@@ -77,7 +89,7 @@ target:
 apptainer-compose -f foo.yaml up
 ```
 
-- env vars from host
+### env vars from host
 
 status: open
 
@@ -91,13 +103,11 @@ target:
 apptainer-compose up
 ```
 
-### not mapped
-
 ## apptainer cli
 
-### mapped 
+### --writable-tmpfs
 
-- --writable-tmpfs
+status: open
 
 source:
 ```
@@ -111,6 +121,3 @@ target:
 ```
 apptainer --writable-tmpfs
 ```
-
-### not mapped
-
