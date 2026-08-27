@@ -1518,6 +1518,8 @@ def state_build(gen, ind, key, val, list_item):
         print("done context")
     elif key == "dockerfile":
         print("done dockerfile")
+    else:
+        raise ParsingError()
 
 
 def state_service_contents(gen, ind, key, val, list_item):
