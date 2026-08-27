@@ -1042,7 +1042,7 @@ class SingularityWriter:
 def convert_dockerfile_to_apptainer(in_docker_context, out_apptainer_file):
     for file in os.listdir(in_docker_context):
         if file == "Dockerfile":
-            in_docker_file = remove_redundant_slashes(in_docker_context + "/" + file)
+            in_docker_file = remove_redundant_slashes_OLD(in_docker_context + "/" + file)
     recipeParser = DockerParser(in_docker_file)
     recipeWriter = SingularityWriter(recipeParser.recipe)
     recipeWriter.write(out_apptainer_file)
@@ -1139,6 +1139,7 @@ class LineReader:
     def __init__(self, file_path):
         self.n = None
         self.line = None
+        self.ind = None
         self.generator = self.create_generator(file_path)
 
     def create_generator(self, file_path):
@@ -1174,7 +1175,7 @@ class LineReader:
         return self.__str__()
 
 
-def validate_string(s, additional_chars=None):
+def validate_string_OLD(s, additional_chars=None):
     if additional_chars is None:
         additional_chars = []
     for invalid_char in [" ", ": "] + additional_chars:
@@ -1183,16 +1184,16 @@ def validate_string(s, additional_chars=None):
     return s
 
 
-def get_key_and_potential_value(s):
+def get_key_and_potential_value_OLD(s):
     key = None
     value = None
     if s[-1] == ":":
-        key = validate_string(s[:-1], [":"])
+        key = validate_string_OLD(s[:-1], [":"])
     else:
         key_value_list = s.split(": ")
         if len(key_value_list) != 2:
             raise ParsingError()
-        key = validate_string(key_value_list[0])
+        key = validate_string_OLD(key_value_list[0])
         value = key_value_list[1].lstrip()
         if value == "" or value.isspace():
             value = None
@@ -1201,11 +1202,11 @@ def get_key_and_potential_value(s):
     return key, value
 
 
-def remove_redundant_slashes(path):
+def remove_redundant_slashes_OLD(path):
     return path.replace("//", "/").replace("/./", "/")
 
 
-def parse_volumes(lr, cs):
+def parse_volumes_OLD(lr, cs):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:6] == "      " and lr.line[6] == "-":
@@ -1222,11 +1223,11 @@ def parse_volumes(lr, cs):
     return cs
 
 
-def parse_environment(lr, cs):
+def parse_environment_OLD(lr, cs):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:6] == "      " and lr.line[6] != " ":
-            key, value = get_key_and_potential_value(lr.line[6:])
+            key, value = get_key_and_potential_value_OLD(lr.line[6:])
             if value == "null":
                 value = None
             elif (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'"):
@@ -1238,17 +1239,17 @@ def parse_environment(lr, cs):
     return cs
 
 
-def parse_extends(lr, cs):
+def parse_extends_OLD(lr, cs):
     lr.move_to_next_line()
     parent_csc = None
     parent_service_name = None
     parent_file_location = None
     while lr.line is not None:
         if lr.line[:6] == "      " and lr.line[6] != " ":
-            key, value = get_key_and_potential_value(lr.line[6:])
+            key, value = get_key_and_potential_value_OLD(lr.line[6:])
             if key == "file":
                 parent_file_location = value
-                parent_csc = state_start(LineReader(value), ComposeServiceContainer())
+                parent_csc = state_start_OLD(LineReader(value), ComposeServiceContainer())
             elif key == "service":
                 parent_service_name = value
         if lr.line[:4] == "    " and lr.line[4] != " ":
@@ -1270,26 +1271,26 @@ def parse_extends(lr, cs):
         if parent_cs.build == ".":
             parent_cs.build = parent_file_folder
         else:
-            parent_build = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.build)
+            parent_build = remove_redundant_slashes_OLD(parent_file_folder + "/" + parent_cs.build)
             parent_cs.build = parent_build
-        parent_cs.def_file = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.def_file)
-        parent_cs.sif_file = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.sif_file)
+        parent_cs.def_file = remove_redundant_slashes_OLD(parent_file_folder + "/" + parent_cs.def_file)
+        parent_cs.sif_file = remove_redundant_slashes_OLD(parent_file_folder + "/" + parent_cs.sif_file)
     volumes_new = {}
     for k, v in parent_cs.volumes.items():
-        volumes_new[k] = remove_redundant_slashes(parent_file_folder + "/" + v)
+        volumes_new[k] = remove_redundant_slashes_OLD(parent_file_folder + "/" + v)
     parent_cs.volumes = volumes_new
     return parent_cs
 
 
-def state_individual_service(lr, cs):
+def state_individual_service_OLD(lr, cs):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:4] == "    " and lr.line[4] != " ":
-            key, value = get_key_and_potential_value(lr.line[4:])
+            key, value = get_key_and_potential_value_OLD(lr.line[4:])
             if key == "image":
-                cs.image = "docker://" + validate_string(value)
+                cs.image = "docker://" + validate_string_OLD(value)
             elif key == "build":
-                cs.build = validate_string(value)
+                cs.build = validate_string_OLD(value)
                 if value == ".":
                     cs.def_file = cs.name + ".def"
                     cs.sif_file = cs.name + ".sif"
@@ -1297,14 +1298,14 @@ def state_individual_service(lr, cs):
                 cs.run_command = shlex.split(value)
             elif key == "volumes":
                 if value is None:
-                    cs = parse_volumes(lr, cs)
+                    cs = parse_volumes_OLD(lr, cs)
                 continue
             elif key == "environment":
                 if value is None:
-                    cs = parse_environment(lr, cs)
+                    cs = parse_environment_OLD(lr, cs)
                 continue
             elif key == "extends":
-                cs = parse_extends(lr, cs)
+                cs = parse_extends_OLD(lr, cs)
                 continue
             elif key in ["networks"]:
                 warnings.warn(f"'{key}' is not supported. Ignoring", UserWarning)
@@ -1314,29 +1315,121 @@ def state_individual_service(lr, cs):
     return cs
 
 
-def state_root_services(lr, csc):
+def state_root_services_OLD(lr, csc):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line[:2] == "  " and lr.line[2] != " ":
-            service_name, value = get_key_and_potential_value(lr.line[2:])
+            service_name, value = get_key_and_potential_value_OLD(lr.line[2:])
             if value is not None:
                 raise ParsingError()
             else:
                 cs = ComposeService()
                 cs.name = service_name
-                cs = state_individual_service(lr, cs)
+                cs = state_individual_service_OLD(lr, cs)
                 csc.compose_services.append(cs)
         lr.move_to_next_line()
     return csc
 
 
-def state_start(lr, csc):
+def state_start_OLD(lr, csc):
     lr.move_to_next_line()
     while lr.line is not None:
         if lr.line.startswith("services:"):
-            state_root_services(lr, csc)
+            state_root_services_OLD(lr, csc)
         lr.move_to_next_line()
     return csc
+
+
+def line_generator(file_path):
+    with open(file_path, "r") as f:
+        for n, line in enumerate(f, start=1):
+            yield n, line[:-1]
+        yield None
+
+
+def get_ind_key_val(lg):
+    while (n_line_tuple := next(lg)) is not None:
+        n, line = n_line_tuple
+        if line.isspace() or line == "":
+            continue
+        ind = 0
+        for char in line:
+            if char == " ":
+                ind += 1
+            else:
+                break
+        key_val = line[ind:]
+        if key_val.startswith("x-") or key_val.startswith("#"):
+            continue
+        if key_val.endswith(":"):
+            key = key_val[:-1]
+            val = None
+        else:
+            key_val_split = key_val.split(": ")
+            if len(key_val_split) == 1:
+                key = key_val_split[0]
+                val = None
+            elif len(key_val_split) == 2:
+                key = key_val_split[0]
+                val = key_val_split[1]
+            else:
+                raise ParsingError()
+        yield ind, key, val
+
+
+def state_build(lg, ind_parent):
+    ind_prev = None
+    for ind, key, val in get_ind_key_val(lg):
+        if ind <= ind_parent:
+            return ind, key, val
+        elif ind_prev is None or ind == ind_prev:
+            ind_prev = ind
+            if key == "context":
+                print("done context")
+            elif key == "dockerfile":
+                print("done dockerfile")
+        elif ind > ind_prev:
+            raise ParsingError()
+
+
+def state_service_contents(lg, ind_parent):
+    ind_prev = None
+    ind, key, val = next(get_ind_key_val(lg))
+    while key is not None:
+        if ind <= ind_parent:
+            return ind, key, val
+        elif ind_prev is None or ind == ind_prev:
+            ind_prev = ind
+            if key == "build":
+                if val is not None:
+                    print("done build")
+                else:
+                    ind, key, val = state_build(lg, ind)
+                    continue
+            elif key == "image":
+                pass
+            elif key == "volumes":
+                pass
+        elif ind > ind_prev:
+            raise ParsingError()
+        ind, key, val = next(get_ind_key_val(lg))
+
+
+def state_service(lg, ind_parent):
+    for ind, key, val in get_ind_key_val(lg):
+        if ind <= ind_parent or val is not None:
+            raise ParsingError()
+        else:
+            return state_service_contents(lg, ind)
+
+
+def state_services(lg):
+    ind, key, val = next(get_ind_key_val(lg))
+    if key != "services" or val is not None or ind != 0:
+        raise ParsingError()
+    else:
+        ind_child, key_child, val_child = state_service(lg, ind)
+        # if ind_child == ind
 
 
 # - main -------------------------------------------------------------------------------------------
@@ -1347,7 +1440,6 @@ def parse_args():
     parser.add_argument("-f", "--file", help="file")
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose")
     parser.add_argument("--dry-run", action="store_true", help="dry run")
-
     subparsers = parser.add_subparsers(dest="COMMAND")
     up_parser = subparsers.add_parser("up", help="Start services")
     subparsers.add_parser("build", help="Stop services")
@@ -1359,7 +1451,6 @@ def parse_args():
     if args.file is None:
         args.file = "compose.yaml"
     if args.verbose:
-        print(f"{args.COMMAND=}")
         print(f"{args.file=}")
         print(f"{args.COMMAND=}")
     return args
@@ -1368,7 +1459,9 @@ def parse_args():
 def parse_compose(args):
     csc = ComposeServiceContainer()
     csc.args = args
-    return state_start(LineReader(args.file), csc)
+    # return state_start_OLD(LineReader(args.file), csc)
+    lg = line_generator(args.file)
+    return state_services(lg)
 
 
 def execute(cs, args):

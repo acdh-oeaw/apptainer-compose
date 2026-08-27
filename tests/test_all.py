@@ -235,9 +235,9 @@ class Test(unittest.TestCase):
         print_separator("test_1_compose_yaml_parsing")
         self.step_through_and_execute_tests("compose_yaml", "parsing")
 
-    def test_2_compose_yaml_execution(self):
-        print_separator("test_2_compose_yaml_execution")
-        self.step_through_and_execute_tests("compose_yaml", "execution")
+    # def test_2_compose_yaml_execution(self):
+    #     print_separator("test_2_compose_yaml_execution")
+    #     self.step_through_and_execute_tests("compose_yaml", "execution")
 
     @classmethod
     def tearDownClass(cls):

@@ -1,0 +1,24 @@
+
+# some comment
+  # some comment
+x-var: bla
+
+services:
+
+
+  app:
+    build:
+
+      context: .
+      dockerfile: "app.dockerfile"
+    volumes:
+      - ./foo1:/bar
+      - ./foo2:/baz
+    environment:
+      FOO: "BAR"
+
+  db:
+    image: alpine
+    x-comment: "again"
+
+x-ver: ble
