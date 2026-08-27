@@ -1344,11 +1344,37 @@ def line_generator(file_path):
     with open(file_path, "r") as f:
         for n, line in enumerate(f, start=1):
             yield n, line[:-1]
+    while True:
         yield None
 
 
+def get_key_val(item):
+    if ":" in item:
+        if item.endswith(":"):
+            key = item[:-1]
+            val = None
+        else:
+            key_val_split = item.split(": ")
+            if len(key_val_split) == 1:
+                key = None
+                val = key_val_split[0]
+            elif len(key_val_split) == 2:
+                key = key_val_split[0]
+                val = key_val_split[1]
+            else:
+                raise ParsingError()
+    else:
+        key = None
+        val = item
+    return key, val
+
+
 def get_ind_key_val(lg):
-    while (n_line_tuple := next(lg)) is not None:
+    list_item = False
+    while True:
+        n_line_tuple = next(lg)
+        if n_line_tuple is None:
+            yield None
         n, line = n_line_tuple
         if line.isspace() or line == "":
             continue
@@ -1358,30 +1384,23 @@ def get_ind_key_val(lg):
                 ind += 1
             else:
                 break
-        key_val = line[ind:]
-        if key_val.startswith("x-") or key_val.startswith("#"):
+        item = line[ind:]
+        if item.startswith("x-") or item.startswith("#"):
             continue
-        if key_val.endswith(":"):
-            key = key_val[:-1]
-            val = None
-        else:
-            key_val_split = key_val.split(": ")
-            if len(key_val_split) == 1:
-                key = key_val_split[0]
-                val = None
-            elif len(key_val_split) == 2:
-                key = key_val_split[0]
-                val = key_val_split[1]
-            else:
-                raise ParsingError()
-        yield ind, key, val
+        if item.startswith("- "):
+            item = item[2:]
+            list_item = True
+        key, val = get_key_val(item)
+        yield ind, key, val, list_item
 
 
 def state_build(lg, ind_parent):
     ind_prev = None
-    for ind, key, val in get_ind_key_val(lg):
+    current_items = next(get_ind_key_val(lg))
+    while current_items is not None:
+        ind, key, val, list_item = current_items
         if ind <= ind_parent:
-            return ind, key, val
+            return ind, key, val, list_item
         elif ind_prev is None or ind == ind_prev:
             ind_prev = ind
             if key == "context":
@@ -1390,46 +1409,75 @@ def state_build(lg, ind_parent):
                 print("done dockerfile")
         elif ind > ind_prev:
             raise ParsingError()
+        current_items = next(get_ind_key_val(lg))
+
+
+def state_volumes(lg, ind_parent):
+    ind_prev = None
+    current_items = next(get_ind_key_val(lg))
+    while current_items is not None:
+        ind, key, val, list_item = current_items
+        if ind <= ind_parent:
+            return ind, key, val, list_item
+        elif ind_prev is None or ind == ind_prev:
+            ind_prev = ind
+            if list_item:
+                print("done volume")
+        elif ind > ind_prev:
+            raise ParsingError()
+        current_items = next(get_ind_key_val(lg))
 
 
 def state_service_contents(lg, ind_parent):
     ind_prev = None
-    ind, key, val = next(get_ind_key_val(lg))
-    while key is not None:
+    current_items = next(get_ind_key_val(lg))
+    while current_items is not None:
+        ind, key, val, list_item = current_items
         if ind <= ind_parent:
-            return ind, key, val
+            return ind, key, val, list_item
         elif ind_prev is None or ind == ind_prev:
             ind_prev = ind
             if key == "build":
                 if val is not None:
                     print("done build")
                 else:
-                    ind, key, val = state_build(lg, ind)
+                    current_items = state_build(lg, ind)
                     continue
             elif key == "image":
-                pass
+                if val is not None:
+                    print("done image")
             elif key == "volumes":
-                pass
+                current_items = state_volumes(lg, ind)
+                continue
         elif ind > ind_prev:
             raise ParsingError()
-        ind, key, val = next(get_ind_key_val(lg))
+        current_items = next(get_ind_key_val(lg))
 
 
 def state_service(lg, ind_parent):
-    for ind, key, val in get_ind_key_val(lg):
+    ind_prev = None
+    current_items = next(get_ind_key_val(lg))
+    while current_items is not None:
+        ind, key, val, list_item = current_items
         if ind <= ind_parent or val is not None:
             raise ParsingError()
         else:
-            return state_service_contents(lg, ind)
+            current_items = state_service_contents(lg, ind)
+            continue
+        current_items = next(get_ind_key_val(lg))
 
 
 def state_services(lg):
-    ind, key, val = next(get_ind_key_val(lg))
-    if key != "services" or val is not None or ind != 0:
-        raise ParsingError()
-    else:
-        ind_child, key_child, val_child = state_service(lg, ind)
-        # if ind_child == ind
+    ind_prev = None
+    current_items = next(get_ind_key_val(lg))
+    while current_items is not None:
+        ind, key, val, list_item = current_items
+        if key != "services" or val is not None or ind != 0:
+            raise ParsingError()
+        else:
+            current_items = state_service(lg, ind)
+            # if ind_child == ind
+        current_items = next(get_ind_key_val(lg))
 
 
 # - main -------------------------------------------------------------------------------------------

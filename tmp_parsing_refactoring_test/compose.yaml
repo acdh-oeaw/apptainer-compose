@@ -14,8 +14,6 @@ services:
     volumes:
       - ./foo1:/bar
       - ./foo2:/baz
-    environment:
-      FOO: "BAR"
 
   db:
     image: alpine
