@@ -1386,7 +1386,7 @@ def generator_ind_key_val(file_path):
         yield None
 
 
-def state_build(gen, ind_parent):
+def state_build_OLD_2(gen, ind_parent):
     ind_prev = None
     current_items = next(gen)
     while current_items is not None:
@@ -1404,7 +1404,7 @@ def state_build(gen, ind_parent):
         current_items = next(gen)
 
 
-def state_volumes(gen, ind_parent):
+def state_volumes_OLD_2(gen, ind_parent):
     ind_prev = None
     current_items = next(gen)
     while current_items is not None:
@@ -1420,7 +1420,7 @@ def state_volumes(gen, ind_parent):
         current_items = next(gen)
 
 
-def state_service_contents(gen, ind_parent):
+def state_service_contents_OLD_2(gen, ind_parent):
     ind_prev = None
     current_items = next(gen)
     while current_items is not None:
@@ -1433,20 +1433,20 @@ def state_service_contents(gen, ind_parent):
                 if val is not None:
                     print("done build")
                 else:
-                    current_items = state_build(gen, ind)
+                    current_items = state_build_OLD_2(gen, ind)
                     continue
             elif key == "image":
                 if val is not None:
                     print("done image")
             elif key == "volumes":
-                current_items = state_volumes(gen, ind)
+                current_items = state_volumes_OLD_2(gen, ind)
                 continue
         elif ind > ind_prev:
             raise ParsingError()
         current_items = next(gen)
 
 
-def state_service(gen, ind_parent):
+def state_service_OLD_2(gen, ind_parent):
     ind_prev = None
     current_items = next(gen)
     while current_items is not None:
@@ -1454,12 +1454,12 @@ def state_service(gen, ind_parent):
         if ind <= ind_parent or val is not None:
             raise ParsingError()
         else:
-            current_items = state_service_contents(gen, ind)
+            current_items = state_service_contents_OLD_2(gen, ind)
             continue
         current_items = next(gen)
 
 
-def state_services(gen):
+def state_services_OLD_2(gen):
     ind_prev = None
     current_items = next(gen)
     while current_items is not None:
@@ -1467,9 +1467,86 @@ def state_services(gen):
         if key != "services" or val is not None or ind != 0:
             raise ParsingError()
         else:
-            current_items = state_service(gen, ind)
-            # if ind_child == ind
+            current_items = state_service_OLD_2(gen, ind)
+            continue
         current_items = next(gen)
+
+
+# def recurse_through_yaml(gen):
+#
+#     def decorator(func):
+#         def wrapper(gen):
+#             ind_prev = None
+#             current_items = next(gen)
+#             while current_items is not None:
+#                 ind, key, val, list_item = current_items
+#                 func(ind, key, val, list_item)
+#                 current_items = next(gen)
+#
+#         return wrapper
+#     return decorator
+#
+#
+# @recurse_through_yaml()
+# def state_services(ind, key, val, list_item):
+#     print(ind, key, val, list_item)
+
+
+def recurse_through_yaml(gen, ind_parent, func):
+    ind_prev = None
+    current_items = next(gen)
+    while current_items is not None:
+        ind, key, val, list_item = current_items
+        if ind <= ind_parent:
+            return ind, key, val, list_item
+        elif ind_prev is None or ind == ind_prev:
+            ind_prev = ind
+            current_items = func(gen, ind, key, val, list_item)
+        else:
+            raise ParsingError()
+        if current_items is None:
+            current_items = next(gen)
+
+
+def state_volumes(gen, ind, key, val, list_item):
+    if list_item:
+        print("done volume")
+
+
+def state_build(gen, ind, key, val, list_item):
+    if key == "context":
+        print("done context")
+    elif key == "dockerfile":
+        print("done dockerfile")
+
+
+def state_service_contents(gen, ind, key, val, list_item):
+    if key == "build":
+        if val is not None:
+            print("done build")
+        else:
+            return recurse_through_yaml(gen, ind, state_build)
+    elif key == "image":
+        if val is not None:
+            print("done image")
+    elif key == "volumes":
+        return recurse_through_yaml(gen, ind, state_volumes)
+    else:
+        raise ParsingError()
+
+
+def state_service(gen, ind, key, val, list_item):
+    if val is not None:
+        raise ParsingError()
+    else:
+        return recurse_through_yaml(gen, ind, state_service_contents)
+
+
+def state_services(gen, ind, key, val, list_item):
+    if key != "services" or val is not None or ind != 0:
+        raise ParsingError()
+    else:
+        return recurse_through_yaml(gen, ind, state_service)
 
 
 # - main -------------------------------------------------------------------------------------------
@@ -1501,7 +1578,8 @@ def parse_compose(args):
     csc.args = args
     # return state_start_OLD(LineReader(args.file), csc)
     gen = generator_ind_key_val(args.file)
-    return state_services(gen)
+    # return state_services(gen)
+    recurse_through_yaml(gen, -1, state_services)
 
 
 def execute(cs, args):
