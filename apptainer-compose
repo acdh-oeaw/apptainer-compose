@@ -1340,52 +1340,6 @@ def state_start_OLD(lr, csc):
     return csc
 
 
-def get_key_val(item):
-    if ":" in item:
-        if item.endswith(":"):
-            key = item[:-1]
-            val = None
-        else:
-            key_val_split = item.split(": ")
-            if len(key_val_split) == 1:
-                key = None
-                val = key_val_split[0]
-            elif len(key_val_split) == 2:
-                key = key_val_split[0]
-                val = key_val_split[1]
-            else:
-                raise ParsingError()
-    else:
-        key = None
-        val = item
-    return key, val
-
-
-def generator_ind_key_val(file_path):
-    with open(file_path, "r") as f:
-        list_item = False
-        for n, line in enumerate(f, start=1):
-            line = line[:-1]
-            if line.isspace() or line == "":
-                continue
-            ind = 0
-            for char in line:
-                if char == " ":
-                    ind += 1
-                else:
-                    break
-            item = line[ind:]
-            if item.startswith("x-") or item.startswith("#"):
-                continue
-            if item.startswith("- "):
-                item = item[2:]
-                list_item = True
-            key, val = get_key_val(item)
-            yield ind, key, val, list_item
-    while True:
-        yield None
-
-
 def state_build_OLD_2(gen, ind_parent):
     ind_prev = None
     current_items = next(gen)
@@ -1472,24 +1426,50 @@ def state_services_OLD_2(gen):
         current_items = next(gen)
 
 
-# def recurse_through_yaml(gen):
-#
-#     def decorator(func):
-#         def wrapper(gen):
-#             ind_prev = None
-#             current_items = next(gen)
-#             while current_items is not None:
-#                 ind, key, val, list_item = current_items
-#                 func(ind, key, val, list_item)
-#                 current_items = next(gen)
-#
-#         return wrapper
-#     return decorator
-#
-#
-# @recurse_through_yaml()
-# def state_services(ind, key, val, list_item):
-#     print(ind, key, val, list_item)
+def get_key_val(item):
+    if ":" in item:
+        if item.endswith(":"):
+            key = item[:-1]
+            val = None
+        else:
+            key_val_split = item.split(": ")
+            if len(key_val_split) == 1:
+                key = None
+                val = key_val_split[0]
+            elif len(key_val_split) == 2:
+                key = key_val_split[0]
+                val = key_val_split[1]
+            else:
+                raise ParsingError()
+    else:
+        key = None
+        val = item
+    return key, val
+
+
+def generator_ind_key_val(file_path):
+    with open(file_path, "r") as f:
+        list_item = False
+        for n, line in enumerate(f, start=1):
+            line = line[:-1]
+            if line.isspace() or line == "":
+                continue
+            ind = 0
+            for char in line:
+                if char == " ":
+                    ind += 1
+                else:
+                    break
+            item = line[ind:]
+            if item.startswith("x-") or item.startswith("#"):
+                continue
+            if item.startswith("- "):
+                item = item[2:]
+                list_item = True
+            key, val = get_key_val(item)
+            yield ind, key, val, list_item
+    while True:
+        yield None
 
 
 def recurse_through_yaml(gen, ind_parent, func):
