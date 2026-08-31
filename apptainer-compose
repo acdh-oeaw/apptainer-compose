@@ -1493,7 +1493,7 @@ def state_volumes(gen, ind, key, val, list_item):
         print("done volume")
 
 
-def state_build(gen, ind, key, val, list_item):
+def state_build_contents(gen, ind, key, val, list_item):
     if key == "context":
         print("done context")
     elif key == "dockerfile":
@@ -1507,7 +1507,7 @@ def state_service_contents(gen, ind, key, val, list_item):
         if val is not None:
             print("done build")
         else:
-            return recurse_through_yaml(gen, ind, state_build)
+            return recurse_through_yaml(gen, ind, state_build_contents)
     elif key == "image":
         if val is not None:
             print("done image")
