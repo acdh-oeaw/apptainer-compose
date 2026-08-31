@@ -1449,8 +1449,8 @@ def get_key_value(item):
 
 class CurrentYamlNode:
 
-    def __init__(self, indendation, key, value, list_item):
-        self.indendation = indendation
+    def __init__(self, indentation, key, value, list_item):
+        self.indentation = indentation
         self.key = key
         self.value = value
         self.is_list_item = list_item
@@ -1463,32 +1463,32 @@ def generator_ind_key_val(file_path):
             line = line[:-1]
             if line.isspace() or line == "":
                 continue
-            indendation = 0
+            indentation = 0
             for char in line:
                 if char == " ":
-                    indendation += 1
+                    indentation += 1
                 else:
                     break
-            item = line[indendation:]
+            item = line[indentation:]
             if item.startswith("x-") or item.startswith("#"):
                 continue
             if item.startswith("- "):
                 item = item[2:]
                 is_list_item = True
             key, value = get_key_value(item)
-            yield CurrentYamlNode(indendation, key, value, is_list_item)
+            yield CurrentYamlNode(indentation, key, value, is_list_item)
     while True:
         yield None
 
 
-def recurse_through_yaml(gen, indendation_parent, func):
-    indendation_prev = None
+def recurse_through_yaml(gen, indentation_parent, func):
+    indentation_prev = None
     cyn = next(gen)
     while cyn is not None:
-        if cyn.indendation <= indendation_parent:
+        if cyn.indentation <= indentation_parent:
             return cyn
-        elif indendation_prev is None or cyn.indendation == indendation_prev:
-            indendation_prev = cyn.indendation
+        elif indentation_prev is None or cyn.indentation == indentation_prev:
+            indentation_prev = cyn.indentation
             cyn = func(gen, cyn)
         else:
             raise ParsingError()
@@ -1515,12 +1515,12 @@ def state_service_contents(gen, cyn):
         if cyn.value is not None:
             print("done build")
         else:
-            return recurse_through_yaml(gen, cyn.indendation, state_build_contents)
+            return recurse_through_yaml(gen, cyn.indentation, state_build_contents)
     elif cyn.key == "image":
         if cyn.value is not None:
             print("done image")
     elif cyn.key == "volumes":
-        return recurse_through_yaml(gen, cyn.indendation, state_volumes)
+        return recurse_through_yaml(gen, cyn.indentation, state_volumes)
     else:
         raise ParsingError()
 
@@ -1529,14 +1529,14 @@ def state_service(gen, cyn):
     if cyn.value is not None:
         raise ParsingError()
     else:
-        return recurse_through_yaml(gen, cyn.indendation, state_service_contents)
+        return recurse_through_yaml(gen, cyn.indentation, state_service_contents)
 
 
 def state_services(gen, cyn):
-    if cyn.key != "services" or cyn.value is not None or cyn.indendation != 0:
+    if cyn.key != "services" or cyn.value is not None or cyn.indentation != 0:
         raise ParsingError()
     else:
-        return recurse_through_yaml(gen, cyn.indendation, state_service)
+        return recurse_through_yaml(gen, cyn.indentation, state_service)
 
 
 # - main -------------------------------------------------------------------------------------------
