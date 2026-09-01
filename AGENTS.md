@@ -16,7 +16,7 @@ Translation of docker-compose to apptainer CLI, where possible.
 ## File map
 
 - `apptainer-compose` — the script (executable, `#!/usr/bin/env python3`). CLI mimics docker compose: `apptainer-compose [-f file] [-v] [--dry-run] up | build | run <service> [cmd...]`.
-- `mappings.md` — **single source of truth for the tests**: each case = `### <name>` + `status:` + `source:` (compose yaml) + `target:` (expected apptainer CLI string) in fenced blocks.
+- `mappings.md` — **single source of truth for the tests**: each case = `### <name>` + `status:` + `source:` (compose yaml) + `target:` (expected apptainer CLI string) in fenced blocks. Status semantics: `open` = **current focus** (work on it next); `not implemented` = **do not implement** (out of scope, leave as-is — e.g. `networks`).
 - `tests/test_all.py` — frozen harness (see below).
 - `tests/test_cases/compose_yaml/{parsing,execution}/<case_id>/compose.yaml` — auto-regenerated from mappings.md on every test run (rmtree + recreate); committed.
 
