@@ -1048,6 +1048,10 @@ def convert_dockerfile_to_apptainer(in_docker_context, out_apptainer_file):
     recipeWriter.write(out_apptainer_file)
 
 
+def remove_redundant_slashes(path):
+    return path.replace("//", "/").replace("/./", "/")
+
+
 # - compose converter ------------------------------------------------------------------------------
 
 
@@ -1057,286 +1061,217 @@ class ParsingError(Exception):
         super().__init__(message)
 
 
-class ComposeService:
-
-    def __init__(self):
-        self.name = None
-        self.image = None
-        self.def_file = None
-        self.sif_file = None
-        self.build = None
-        self.run_command = None
-        self.volumes = {}
-        self.environment = {}
-
-    def command_to_list(self, args):
-        l = ["apptainer"]
-        if args.COMMAND == "build":
-            l += [
-                "build",
-                "-F",
-                self.sif_file,
-                self.def_file,
-            ]
+def get_key_value(item):
+    if ":" in item:
+        if item.endswith(":"):
+            key = item[:-1]
+            value = None
         else:
-            if args.COMMAND == "up":
-                if self.run_command:
-                    l.append("run")
-                else:
-                    l.append("run")
-            elif args.COMMAND == "run":
-                l.append("run")
-            for vol in self.volumes.values():
-                l += ["--bind", vol]
-            if self.environment:
-                for k, v in self.environment.items():
-                    if v is not None:
-                        l += ["--env", k + "=" + v]
-            if self.build:
-                l += [self.sif_file]
-            elif self.image:
-                l += [self.image]
-            if args.COMMAND == "run":
-                l += args.run_command
-            elif self.run_command:
-                l += self.run_command
-        return l
-
-    def command_to_str(self, args):
-        s = ""
-        prev = None
-        for e in self.command_to_list(args):
-            if prev == "--env":
-                var, val = e.split("=")
-                s += f"{var}='{val}' "
+            key_value_split = item.split(": ")
+            if len(key_value_split) == 1:
+                key = None
+                value = key_value_split[0]
+            elif len(key_value_split) == 2:
+                key = key_value_split[0]
+                value = key_value_split[1]
             else:
-                s += e + " "
-            prev = e
-        s = s[:-1]
-        return s
+                raise ParsingError()
+    else:
+        key = None
+        value = item
+    return key, value
+
+
+class YamlNode:
+
+    def __init__(self, indentation, key, value, list_item):
+        self.key = key
+        self.value = value
+        self.is_list_item = list_item
 
     def __str__(self):
-        s = ""
-        for k, v in self.__dict__.items():
-            if v:
-                s += k + ": " + str(v) + ", "
-        s = "<class 'ComposeService': " + s[:-2] + ">"
-        return s
-
-    def __repr__(self):
-        return str(self)
-
-
-class ComposeServiceContainer:
-
-    def __init__(self):
-        self.args = None
-        self.compose_services = []
-
-
-class LineReader:
-
-    def __init__(self, file_path):
-        self.n = None
-        self.line = None
-        self.generator = self.create_generator(file_path)
-
-    def create_generator(self, file_path):
-        with open(file_path, "r") as f:
-            for n, line in enumerate(f.read().splitlines(), start=1):
-                skip_line = False
-                char_prev = None
-                for char in line:
-                    if char == " ":
-                        continue
-                    elif char == "#":
-                        skip_line = True
-                        break
-                    elif char_prev == "x" and char == "-":
-                        skip_line = True
-                        break
-                    else:
-                        char_prev = char
-                if not skip_line:
-                    yield n, line
-        yield n + 1, None
-
-    def move_to_next_line(self):
-        try:
-            self.n, self.line = next(self.generator)
-        except:
-            pass
-
-    def __str__(self):
-        return f"{self.n}: {self.line}"
+        return f"{self.key=}, {self.value=}, {self.is_list_item=}"
 
     def __repr__(self):
         return self.__str__()
 
 
-def validate_string(s, additional_chars=None):
-    if additional_chars is None:
-        additional_chars = []
-    for invalid_char in [" ", ": "] + additional_chars:
-        if invalid_char in s:
-            raise ParsingError()
-    return s
+class Reader:
+
+    def __init__(self, file_path):
+        self.indentation = -1
+        self.indentation_previous = -2
+        self.file_path = file_path
+        self.gen = self.create_gen()
+        self.yn = None
+
+    def create_gen(self):
+        with open(self.file_path, "r") as f:
+            is_list_item = False
+            for n, line in enumerate(f, start=1):
+                line = line[:-1]
+                if line.isspace() or line == "":
+                    continue
+                self.indentation = 0
+                for char in line:
+                    if char == " ":
+                        self.indentation += 1
+                    else:
+                        break
+                item = line[self.indentation:]
+                if item.startswith("x-") or item.startswith("#"):
+                    continue
+                if item.startswith("- "):
+                    item = item[2:]
+                    is_list_item = True
+                key, value = get_key_value(item)
+                yield YamlNode(self.indentation, key, value, is_list_item)
+        while True:
+            yield None
+
+    def next(self):
+        self.indentation_previous = self.indentation
+        self.yn = next(self.gen)
 
 
-def get_key_and_potential_value(s):
-    key = None
-    value = None
-    if s[-1] == ":":
-        key = validate_string(s[:-1], [":"])
+def recurse(r, func):
+    d = None
+    r.next()
+    ind_here = r.indentation
+    while r.yn is not None:
+        if ind_here == r.indentation:
+            d = func(r, d)
+        if ind_here > r.indentation:
+            return d
+        if ind_here < r.indentation_previous:
+            continue
+        r.next()
+    return d
+
+
+def helper_set_up_dict(d):
+    if d is None:
+        d = {}
+    return d
+
+
+def helper_set_up_list(d):
+    if d is None:
+        d = []
+    return d
+
+
+def helper_add_dict(r, d, func, key):
+    d = helper_set_up_dict(d)
+    if key is None:
+        key = r.yn.key
+    if func is None:
+        d[key] = r.yn.value
     else:
-        key_value_list = s.split(": ")
-        if len(key_value_list) != 2:
-            raise ParsingError()
-        key = validate_string(key_value_list[0])
-        value = key_value_list[1].lstrip()
-        if value == "" or value.isspace():
-            value = None
-    if value is not None:
-        value = value.replace("$$", "$")
-    return key, value
+        d[key] = recurse(r, func)
+    return d
 
 
-def remove_redundant_slashes(path):
-    return path.replace("//", "/").replace("/./", "/")
+def helper_add_list(r, d, func):
+    d = helper_set_up_list(d)
+    if func is None:
+        d.append(r.yn.value)
+    else:
+        d.append(recurse(r, func))
+    return d
 
 
-def parse_volumes(lr, cs):
-    lr.move_to_next_line()
-    while lr.line is not None:
-        if lr.line[:6] == "      " and lr.line[6] == "-":
-            vol = lr.line[7:].lstrip().rstrip()
-            if vol.count(":") not in [1, 2]:
-                raise ParsingError()
-            else:
-                vol = ":".join(vol.split(":")[:2])
-                vol_container = vol.split(":")[1]
-                cs.volumes[vol_container] = vol
-        else:
-            break
-        lr.move_to_next_line()
-    return cs
+def extract_key(r, d, func):
+    if d is None:
+        d = {}
+    key = r.yn.key
+    d[key] = recurse(r, func)
+    return d
 
 
-def parse_environment(lr, cs):
-    lr.move_to_next_line()
-    while lr.line is not None:
-        if lr.line[:6] == "      " and lr.line[6] != " ":
-            key, value = get_key_and_potential_value(lr.line[6:])
-            if value == "null":
-                value = None
-            elif (value[0] == '"' and value[-1] == '"') or (value[0] == "'" and value[-1] == "'"):
-                value = value[1:-1]
-            cs.environment[key] = value
-        else:
-            break
-        lr.move_to_next_line()
-    return cs
+def helper_take_value_or_recurse(r, d, func, key):
+    d = helper_set_up_dict(d)
+    if r.yn.value is not None:
+        value = r.yn.value
+    else:
+        value = recurse(r, func)
+    d[key] = value
+    return d
 
 
-def parse_extends(lr, cs):
-    lr.move_to_next_line()
-    parent_csc = None
-    parent_service_name = None
-    parent_file_location = None
-    while lr.line is not None:
-        if lr.line[:6] == "      " and lr.line[6] != " ":
-            key, value = get_key_and_potential_value(lr.line[6:])
-            if key == "file":
-                parent_file_location = value
-                parent_csc = state_start(LineReader(value), ComposeServiceContainer())
-            elif key == "service":
-                parent_service_name = value
-        if lr.line[:4] == "    " and lr.line[4] != " ":
-            break
-        lr.move_to_next_line()
-    if parent_csc is None or parent_service_name is None:
+def state_build(r, d):
+    if r.yn.key == "context":
+        return helper_add_dict(r, d, None, "context")
+    elif r.yn.key == "dockerfile":
+        return helper_add_dict(r, d, None, "dockerfile")
+    else:
         raise ParsingError()
-    parent_cs = None
-    for parent_cs_potential in parent_csc.compose_services:
-        if parent_cs_potential.name == parent_service_name:
-            parent_cs = parent_cs_potential
-    if parent_cs is None:
+
+
+def state_volumes(r, d):
+    return helper_add_list(r, d, None)
+
+
+def state_environment(r, d):
+    return helper_add_dict(r, d, None, None)
+
+
+def state_service(r, d):
+    if r.yn.key == "build":
+        return helper_take_value_or_recurse(r, d, state_build, "build")
+    elif r.yn.key == "command":
+        r.yn.value = shlex.split(r.yn.value)
+        return helper_add_dict(r, d, None, "command")
+    elif r.yn.key == "image":
+        return helper_add_dict(r, d, None, "image")
+    elif r.yn.key == "volumes":
+        return helper_add_dict(r, d, state_volumes, "volumes")
+    elif r.yn.key == "environment":
+        return helper_add_dict(r, d, state_environment, "environment")
+    else:
         raise ParsingError()
-    for key, value in cs.__dict__.items():
-        if value:
-            parent_cs.__setattr__(key, value)
-    parent_file_folder = parent_file_location.rsplit("/", 1)[0]
-    if parent_cs.build:
-        if parent_cs.build == ".":
-            parent_cs.build = parent_file_folder
+
+
+def state_services(r, d):
+    return helper_add_dict(r, d, state_service, None)
+
+
+def state_root(r, d):
+    return helper_add_dict(r, d, state_services, "services")
+
+
+def command_to_list(d_service, args):
+    l = ["apptainer"]
+    if args.COMMAND == "up":
+        l.append("run")
+    for vol in d_service.get("volumes", []):
+        l += ["--bind", vol]
+    environment = d_service.get("environment")
+    if environment:
+        for k, v in environment.items():
+            if v is not None:
+                l += ["--env", k + "=" + v]
+    image = d_service.get("image")
+    if image:
+        l.append("docker://" + image)
+    command = d_service.get("command")
+    if command:
+        l += command
+    return l
+
+
+def command_to_str(d_service, args):
+    s = ""
+    prev = None
+    for e in command_to_list(d_service, args):
+        if prev == "--env":
+            var, val = e.split("=")
+            s += f"{var}='{val}' "
         else:
-            parent_build = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.build)
-            parent_cs.build = parent_build
-        parent_cs.def_file = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.def_file)
-        parent_cs.sif_file = remove_redundant_slashes(parent_file_folder + "/" + parent_cs.sif_file)
-    volumes_new = {}
-    for k, v in parent_cs.volumes.items():
-        volumes_new[k] = remove_redundant_slashes(parent_file_folder + "/" + v)
-    parent_cs.volumes = volumes_new
-    return parent_cs
-
-
-def state_individual_service(lr, cs):
-    lr.move_to_next_line()
-    while lr.line is not None:
-        if lr.line[:4] == "    " and lr.line[4] != " ":
-            key, value = get_key_and_potential_value(lr.line[4:])
-            if key == "image":
-                cs.image = "docker://" + validate_string(value)
-            elif key == "build":
-                cs.build = validate_string(value)
-                if value == ".":
-                    cs.def_file = cs.name + ".def"
-                    cs.sif_file = cs.name + ".sif"
-            elif key == "command":
-                cs.run_command = shlex.split(value)
-            elif key == "volumes":
-                if value is None:
-                    cs = parse_volumes(lr, cs)
-                continue
-            elif key == "environment":
-                if value is None:
-                    cs = parse_environment(lr, cs)
-                continue
-            elif key == "extends":
-                cs = parse_extends(lr, cs)
-                continue
-            elif key in ["networks"]:
-                warnings.warn(f"'{key}' is not supported. Ignoring", UserWarning)
-            else:
-                raise ParsingError()
-        lr.move_to_next_line()
-    return cs
-
-
-def state_root_services(lr, csc):
-    lr.move_to_next_line()
-    while lr.line is not None:
-        if lr.line[:2] == "  " and lr.line[2] != " ":
-            service_name, value = get_key_and_potential_value(lr.line[2:])
-            if value is not None:
-                raise ParsingError()
-            else:
-                cs = ComposeService()
-                cs.name = service_name
-                cs = state_individual_service(lr, cs)
-                csc.compose_services.append(cs)
-        lr.move_to_next_line()
-    return csc
-
-
-def state_start(lr, csc):
-    lr.move_to_next_line()
-    while lr.line is not None:
-        if lr.line.startswith("services:"):
-            state_root_services(lr, csc)
-        lr.move_to_next_line()
-    return csc
+            s += e + " "
+        prev = e
+    s = s[:-1]
+    return s
 
 
 # - main -------------------------------------------------------------------------------------------
@@ -1347,55 +1282,37 @@ def parse_args():
     parser.add_argument("-f", "--file", help="file")
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose")
     parser.add_argument("--dry-run", action="store_true", help="dry run")
-
     subparsers = parser.add_subparsers(dest="COMMAND")
     up_parser = subparsers.add_parser("up", help="Start services")
     subparsers.add_parser("build", help="Stop services")
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")
     run_parser.add_argument("run_command", nargs="*", help="Command and arguments to run")
-
     args = parser.parse_args()
     if args.file is None:
         args.file = "compose.yaml"
     if args.verbose:
-        print(f"{args.COMMAND=}")
         print(f"{args.file=}")
         print(f"{args.COMMAND=}")
     return args
 
 
 def parse_compose(args):
-    csc = ComposeServiceContainer()
-    csc.args = args
-    return state_start(LineReader(args.file), csc)
+    r = Reader(args.file)
+    return recurse(r, state_root)
 
 
-def execute(cs, args):
-    if args.verbose:
-        print(cs.name)
-        print(cs)
-    print(cs.command_to_str(args))
-    if not args.dry_run:
-        cmd_as_list = cs.command_to_list(args)
-        subprocess.run(cmd_as_list)
+def execute(d_service, args):
+    print(command_to_str(d_service, args))
+    cmd_as_list = command_to_list(d_service, args)
+    subprocess.run(cmd_as_list)
 
 
 def main():
     args = parse_args()
-    csc = parse_compose(args)
-    for cs in csc.compose_services:
-        if csc.args.COMMAND == "build" or (
-            csc.args.COMMAND == "up"
-            and not csc.args.dry_run
-            and cs.sif_file is not None
-            and not os.path.exists(cs.sif_file)
-        ):
-            convert_dockerfile_to_apptainer(cs.build, cs.def_file)
-            build_args = copy(csc.args)
-            build_args.COMMAND = "build"
-            execute(cs, build_args)
-        execute(cs, csc.args)
+    d = parse_compose(args)
+    for d_service in d["services"].values():
+        execute(d_service, args)
 
 
 if __name__ == "__main__":
