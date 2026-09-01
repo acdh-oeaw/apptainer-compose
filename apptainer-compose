@@ -1609,6 +1609,9 @@ def state_environment(r, d):
 def state_service(r, d):
     if r.yn.key == "build":
         return helper_take_value_or_recurse(r, d, state_build, "build")
+    elif r.yn.key == "command":
+        r.yn.value = shlex.split(r.yn.value)
+        return helper_add_dict(r, d, None, "command")
     elif r.yn.key == "image":
         return helper_add_dict(r, d, None, "image")
     elif r.yn.key == "volumes":
@@ -1641,6 +1644,9 @@ def command_to_list(d_service, args):
     image = d_service.get("image")
     if image:
         l.append("docker://" + image)
+    command = d_service.get("command")
+    if command:
+        l += command
     return l
 
 def command_to_str(d_service, args):
@@ -1671,7 +1677,6 @@ def parse_args():
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")
     run_parser.add_argument("run_command", nargs="*", help="Command and arguments to run")
-
     args = parser.parse_args()
     if args.file is None:
         args.file = "compose.yaml"
@@ -1684,9 +1689,6 @@ def parse_args():
 def parse_compose(args):
     csc = ComposeServiceContainer()
     csc.args = args
-    # return state_start_OLD(LineReader(args.file), csc)
-    # gen = generator_ind_key_val(args.file)
-    # return state_services(gen)
     r = Reader(args.file)
     return recurse(r, state_root)
 
