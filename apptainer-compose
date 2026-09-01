@@ -1447,16 +1447,21 @@ def get_key_value(item):
     return key, value
 
 
-class CurrentYamlNode:
+class YamlNode:
 
     def __init__(self, indentation, key, value, list_item):
-        self.indentation = indentation
         self.key = key
         self.value = value
         self.is_list_item = list_item
 
+    def __str__(self):
+        return f"{self.key=}, {self.value=}, {self.is_list_item=}"
 
-def generator_ind_key_val(file_path):
+    def __repr__(self):
+        return self.__str__()
+
+
+def generator_ind_key_val_OLD_3(file_path):
     with open(file_path, "r") as f:
         is_list_item = False
         for n, line in enumerate(f, start=1):
@@ -1476,67 +1481,123 @@ def generator_ind_key_val(file_path):
                 item = item[2:]
                 is_list_item = True
             key, value = get_key_value(item)
-            yield CurrentYamlNode(indentation, key, value, is_list_item)
+            yield YamlNode(indentation, key, value, is_list_item)
     while True:
         yield None
 
 
-def recurse_through_yaml(gen, indentation_parent, func):
-    indentation_prev = None
-    cyn = next(gen)
-    while cyn is not None:
-        if cyn.indentation <= indentation_parent:
-            return cyn
-        elif indentation_prev is None or cyn.indentation == indentation_prev:
-            indentation_prev = cyn.indentation
-            cyn = func(gen, cyn)
-        else:
-            raise ParsingError()
-        if cyn is None:
-            cyn = next(gen)
+class Reader:
+
+    def __init__(self, file_path):
+        self.indentation = -1
+        self.indentation_previous = -2
+        self.file_path = file_path
+        self.gen = self.create_gen()
+        self.yn = None
+
+    def create_gen(self):
+        with open(self.file_path, "r") as f:
+            is_list_item = False
+            for n, line in enumerate(f, start=1):
+                line = line[:-1]
+                if line.isspace() or line == "":
+                    continue
+                self.indentation = 0
+                for char in line:
+                    if char == " ":
+                        self.indentation += 1
+                    else:
+                        break
+                item = line[self.indentation:]
+                if item.startswith("x-") or item.startswith("#"):
+                    continue
+                if item.startswith("- "):
+                    item = item[2:]
+                    is_list_item = True
+                key, value = get_key_value(item)
+                yield YamlNode(self.indentation, key, value, is_list_item)
+        while True:
+            yield None
+
+    def next(self):
+        self.indentation_previous = self.indentation
+        self.yn = next(self.gen)
 
 
-def state_volumes(gen, cyn):
-    if cyn.is_list_item:
-        print("done volume")
+def recurse(r, func):
+    d = None
+    r.next()
+    ind_here = r.indentation
+    while r.yn is not None:
+        if ind_here == r.indentation:
+            d = func(r, d)
+        if r.indentation < ind_here:
+            return d
+        if ind_here < r.indentation_previous:
+            continue
+        r.next()
+    return d
 
 
-def state_build_contents(gen, cyn):
-    if cyn.key == "context":
-        print("done context")
-    elif cyn.key == "dockerfile":
-        print("done dockerfile")
+def state_volumes(r, d):
+    if d is None:
+        d = []
+    if r.yn.is_list_item:
+        d.append(r.yn.value)
+    return d
+
+
+def state_build_contents(r, d):
+    if d is None:
+        d = {}
+    if r.yn.key == "context":
+        d["context"] = r.yn.value
+    elif r.yn.key == "dockerfile":
+        d["dockerfile"] = r.yn.value
     else:
         raise ParsingError()
+    return d
 
 
-def state_service_contents(gen, cyn):
-    if cyn.key == "build":
-        if cyn.value is not None:
-            print("done build")
+def state_service_contents(r, d):
+    if d is None:
+        d = {}
+    if r.yn.key == "build":
+        if r.yn.value is not None:
+            value = r.yn.value
         else:
-            return recurse_through_yaml(gen, cyn.indentation, state_build_contents)
-    elif cyn.key == "image":
-        if cyn.value is not None:
+            value = recurse(r, state_build_contents)
+        d["build"] = value
+    elif r.yn.key == "image":
+        if r.yn.value is not None:
             print("done image")
-    elif cyn.key == "volumes":
-        return recurse_through_yaml(gen, cyn.indentation, state_volumes)
+        d["image"] = r.yn.value
+    elif r.yn.key == "volumes":
+        d["volumes"] = recurse(r, state_volumes)
     else:
         raise ParsingError()
+    return d
 
 
-def state_service(gen, cyn):
-    if cyn.value is not None:
+def state_service(r, d):
+    if d is None:
+        d = {}
+    if r.yn.value is not None:
         raise ParsingError()
     else:
-        return recurse_through_yaml(gen, cyn.indentation, state_service_contents)
+        k = r.yn.key
+        d[k] = recurse(r, state_service_contents)
+    return d
 
 
-def state_services(gen, cyn):
-    if cyn.key != "services" or cyn.value is not None or cyn.indentation != 0:
+def state_services(r, d):
+    if d is None:
+        d = {}
+    if r.yn.key != "services" or r.yn.value is not None or r.indentation != 0:
         raise ParsingError()
     else:
-        return recurse_through_yaml(gen, cyn.indentation, state_service)
+        d["services"] = recurse(r, state_service)
+    return d
 
 
 # - main -------------------------------------------------------------------------------------------
@@ -1567,9 +1628,10 @@ def parse_compose(args):
     csc = ComposeServiceContainer()
     csc.args = args
     # return state_start_OLD(LineReader(args.file), csc)
-    gen = generator_ind_key_val(args.file)
+    # gen = generator_ind_key_val(args.file)
     # return state_services(gen)
-    recurse_through_yaml(gen, -1, state_services)
+    r = Reader(args.file)
+    return recurse(r, state_services)
 
 
 def execute(cs, args):
