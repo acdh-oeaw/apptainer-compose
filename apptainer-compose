@@ -1217,6 +1217,10 @@ def state_environment(r, d):
     return helper_add_dict(r, d, None, None)
 
 
+def state_dns(r, d):
+    return helper_add_list(r, d, None)
+
+
 def state_service(r, d):
     if r.yn.key == "build":
         return helper_take_value_or_recurse(r, d, state_build, "build")
@@ -1233,6 +1237,8 @@ def state_service(r, d):
         return helper_add_dict(r, d, None, "hostname")
     elif r.yn.key == "working_dir":
         return helper_add_dict(r, d, None, "working_dir")
+    elif r.yn.key == "dns":
+        return helper_add_dict(r, d, state_dns, "dns")
     else:
         raise ParsingError()
 
@@ -1262,6 +1268,9 @@ def command_to_list(d_service, args):
     working_dir = d_service.get("working_dir")
     if working_dir:
         l += ["--cwd", working_dir]
+    dns = d_service.get("dns")
+    if dns:
+        l += ["--dns", ",".join(dns)]
     image = d_service.get("image")
     if image:
         l.append("docker://" + image)

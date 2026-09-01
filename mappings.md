@@ -93,7 +93,7 @@ apptainer run --cwd /var docker://alpine:latest sh -c if [ "$(pwd)" = "/var" ]; 
 
 ### services:\<service>:dns
 
-status: open
+status: tests passed
 
 source:
 ```
