@@ -1304,7 +1304,7 @@ def parse_compose(args):
 
 
 def execute(d_service, args):
-    print(command_to_str(d_service, args))
+    print(command_to_str(d_service, args), flush=True)
     cmd_as_list = command_to_list(d_service, args)
     subprocess.run(cmd_as_list)
 
