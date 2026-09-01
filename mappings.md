@@ -42,7 +42,7 @@ apptainer run docker://alpine:latest echo success
 
 ### services:\<service>:environment
 
-status: tests passed
+status: tests failed
 
 source:
 ```
