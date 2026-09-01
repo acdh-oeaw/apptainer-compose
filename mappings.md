@@ -60,11 +60,3 @@ apptainer run --env FOO='BAR' docker://alpine:latest
 ### networks
 
 status: not implemented
-
-## docker compose cli
-
-not implemented
-
-## apptainer cli
-
-not implemented
