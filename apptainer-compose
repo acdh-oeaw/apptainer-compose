@@ -1042,10 +1042,14 @@ class SingularityWriter:
 def convert_dockerfile_to_apptainer(in_docker_context, out_apptainer_file):
     for file in os.listdir(in_docker_context):
         if file == "Dockerfile":
-            in_docker_file = remove_redundant_slashes_OLD(in_docker_context + "/" + file)
+            in_docker_file = remove_redundant_slashes(in_docker_context + "/" + file)
     recipeParser = DockerParser(in_docker_file)
     recipeWriter = SingularityWriter(recipeParser.recipe)
     recipeWriter.write(out_apptainer_file)
+
+
+def remove_redundant_slashes(path):
+    return path.replace("//", "/").replace("/./", "/")
 
 
 # - compose converter ------------------------------------------------------------------------------
@@ -1254,6 +1258,7 @@ def command_to_list(d_service, args):
     if command:
         l += command
     return l
+
 
 def command_to_str(d_service, args):
     s = ""
