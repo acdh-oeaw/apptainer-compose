@@ -76,7 +76,7 @@ apptainer run --hostname apptainer-compose-test docker://alpine:latest sh -c if 
 
 ### services:\<service>:working_dir
 
-status: open
+status: tests passed
 
 source:
 ```
