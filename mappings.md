@@ -112,7 +112,7 @@ apptainer run --dns 1.1.1.1,8.8.8.8 docker://alpine:latest sh -c if grep -q "1.1
 
 ### services:\<service>:security_opt
 
-status: open
+status: tests passed
 
 source:
 ```

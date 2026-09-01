@@ -1,0 +1,5 @@
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    hostname: apptainer-compose-test
+    command: sh -c 'if [ "$(hostname)" = "apptainer-compose-test" ]; then echo success; else echo failure; fi'

@@ -1221,6 +1221,10 @@ def state_dns(r, d):
     return helper_add_list(r, d, None)
 
 
+def state_security_opt(r, d):
+    return helper_add_list(r, d, None)
+
+
 def state_service(r, d):
     if r.yn.key == "build":
         return helper_take_value_or_recurse(r, d, state_build, "build")
@@ -1239,6 +1243,8 @@ def state_service(r, d):
         return helper_add_dict(r, d, None, "working_dir")
     elif r.yn.key == "dns":
         return helper_add_dict(r, d, state_dns, "dns")
+    elif r.yn.key == "security_opt":
+        return helper_add_dict(r, d, state_security_opt, "security_opt")
     else:
         raise ParsingError()
 
@@ -1271,6 +1277,13 @@ def command_to_list(d_service, args):
     dns = d_service.get("dns")
     if dns:
         l += ["--dns", ",".join(dns)]
+    security_opt = d_service.get("security_opt")
+    if security_opt:
+        for opt in security_opt:
+            if opt == "no-new-privileges":
+                l += ["--security", "no_new_privs"]
+            else:
+                raise ParsingError()
     image = d_service.get("image")
     if image:
         l.append("docker://" + image)

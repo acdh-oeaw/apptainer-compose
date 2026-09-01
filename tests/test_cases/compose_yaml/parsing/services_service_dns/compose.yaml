@@ -1,0 +1,7 @@
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    command: sh -c 'if grep -q "1.1.1.1" /etc/resolv.conf && grep -q "8.8.8.8" /etc/resolv.conf; then echo success; else echo failure; fi'
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8

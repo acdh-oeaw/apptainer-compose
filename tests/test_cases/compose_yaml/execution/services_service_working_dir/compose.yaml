@@ -1,0 +1,5 @@
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    working_dir: /var
+    command: sh -c 'if [ "$(pwd)" = "/var" ]; then echo success; else echo failure; fi'

@@ -1,0 +1,6 @@
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    command: sh -c 'if grep -Eq "NoNewPrivs:[[:space:]]1" /proc/self/status; then echo success; else echo failure; fi'
+    security_opt:
+      - no-new-privileges
