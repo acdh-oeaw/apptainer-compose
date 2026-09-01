@@ -33,9 +33,10 @@ Translation of docker-compose to apptainer CLI, where possible.
 Run from the `tests/` directory (relative paths): `python3 -m unittest test_all -v`
 
 - `extract_test_data()` parses mappings.md line-by-line: `## compose yaml` section enabled (docker compose cli / apptainer cli reserved); case id = `###` name with `:\<`→`_` and `>:`→`_`; `status: not implemented` cases skipped.
-- Each case yields a **parsing** and an **execution** TestCase. Execution sources pass through `modify_compose_yaml_for_execution`, which injects a self-check `command:` line after line 3 — **only for the 3 legacy case ids** (`services_service_command` untouched; `..._environment` / `..._volumes` get `sh -c 'if [ ... ]; then echo "success"; else echo "failure"; fi'` checks). Any new case id is used verbatim.
+- Suite shape: a single `Test` class with exactly **two** methods — `test_1_compose_yaml_parsing` and `test_2_compose_yaml_execution` — each iterating over all cases in `subTest()` blocks. unittest therefore always reports `Ran 2 tests`; a failure in any case fails its whole method (`failures=1`). Pass/fail tallies like "5/6" are **subTest-level** counts (each case contributes 2: parsing + execution).
+- Each case yields a **parsing** and an **execution** subTest. Execution sources pass through `modify_compose_yaml_for_execution`, which injects a self-check `command:` line after line 3 — **only for the 3 legacy case ids** (`services_service_command` untouched; `..._environment` / `..._volumes` get `sh -c 'if [ ... ]; then echo "success"; else echo "failure"; fi'` checks). Any new case id is used verbatim.
 - Parsing test: `parse_compose` + `command_to_str` of the first service must **exactly equal** `target`.
-- Execution test: in the case folder, runs `../../../../../apptainer-compose up` and asserts stdout line[1] == `success`; then `docker-compose up` and asserts stdout line[1] split on `" | "` → `success`.
+- Execution test: in the case folder, runs `../../../../../apptainer-compose up` and asserts stdout line[1] == `success`; then `docker-compose up` and asserts stdout line[1] split on `" | "` → `success`. The apptainer check runs **first** — if it fails, the assert raises inside the subTest and the docker-compose check for that case is never run.
 - **Harness contract:** the script's command line must appear in captured (piped) stdout *before* container output — hence `flush=True` in `execute()` (block-buffered print would otherwise land after the child's output).
 - `tearDownClass` rewrites `status:` lines in mappings.md — but only for cases where `test_case.evaluation` was assigned. A failing subTest skips the assignment (stays None) → **failed tests leave the status line stale**; `status: tests failed` is effectively never written automatically. Update status lines manually after failures.
 
@@ -58,7 +59,7 @@ Run from the `tests/` directory (relative paths): `python3 -m unittest test_all 
 
 ## Baseline (2026-09-01)
 
-- 5/6 tests pass. Failing: `services_service_environment` execution — the injected check uses `$$FOO`: docker-compose escapes `$$`→`$` before the container shell, apptainer-compose passes `$$` through, so the container's `sh` expands it to its PID → prints `failure`. Env passing itself works (`--env FOO=BAR` verified). Natural next feature: `$$` escape handling in `command` parsing (compose interpolation).
+- 5/6 subTests pass (unittest reports `Ran 2 tests ... FAILED (failures=1)`). Failing: `services_service_environment` execution — the injected check uses `$$FOO`: docker-compose escapes `$$`→`$` before the container shell, apptainer-compose passes `$$` through, so the container's `sh` expands it to its PID → prints `failure`. Env passing itself works (`--env FOO=BAR` verified). Natural next feature: `$$` escape handling in `command` parsing (compose interpolation).
 
 ## Known quirks
 
