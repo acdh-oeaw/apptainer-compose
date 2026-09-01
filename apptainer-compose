@@ -1229,6 +1229,7 @@ def state_service(r, d):
     if r.yn.key == "build":
         return helper_take_value_or_recurse(r, d, state_build, "build")
     elif r.yn.key == "command":
+        r.yn.value = r.yn.value.replace("$$", "$")
         r.yn.value = shlex.split(r.yn.value)
         return helper_add_dict(r, d, None, "command")
     elif r.yn.key == "image":
