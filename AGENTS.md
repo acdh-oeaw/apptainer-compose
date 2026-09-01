@@ -24,8 +24,8 @@ Translation of docker-compose to apptainer CLI, where possible.
 
 - `Reader` yields `YamlNode(indentation, key, value, is_list_item)`; skips blank lines, `#` comments, and `x-`-prefixed keys; `- ` marks list items. `get_key_value` splits `key: value` (bare `key:` → value None).
 - `recurse(r, func)` is indentation-driven recursive descent: calls `func(r, d)` for each node at the current indent, returns when indentation decreases.
-- State chain: `state_root` (expects `services`) → `state_services` → `state_service` (key dispatch; **unknown key raises ParsingError** — add new keys here) → `state_build` (`context`, `dockerfile`), `state_volumes` (list of strings), `state_environment` (dict, quotes stripped).
-- `command_to_list`: `apptainer run` + `--bind <vol>` per volume + `--env K=V` per env (None values skipped) + `docker://<image>` + command list (command is `shlex.split` of the raw value).
+- State chain: `state_root` (expects `services`) → `state_services` → `state_service` (key dispatch; **unknown key raises ParsingError** — add new keys here) → `state_build` (`context`, `dockerfile`), `state_volumes` / `state_dns` / `state_security_opt` (list of strings), `state_environment` (dict, quotes stripped); scalar keys (`image`, `command`, `hostname`, `working_dir`) stored directly.
+- `command_to_list`: `apptainer run` + `--bind <vol>` per volume + `--env K=V` per env (None values skipped) + `--hostname H` + `--cwd D` (working_dir) + `--dns a,b` (comma-joined) + `--security no_new_privs` (per `security_opt: no-new-privileges`) + `docker://<image>` + command list (command is `shlex.split` of the raw value).
 - `command_to_str`: same, but `--env` rendered as `K='V'` — this is what parsing tests compare against `target`.
 - `execute()` prints the command (`flush=True` — required, see harness contract) then `subprocess.run` of the list.
 
@@ -39,7 +39,7 @@ Run from the `tests/` directory (relative paths): `python3 -m unittest test_all 
 - Parsing test: `parse_compose` + `command_to_str` of the first service must **exactly equal** `target`.
 - Execution test: in the case folder, runs `../../../../../apptainer-compose up` and asserts stdout line[1] == `success`; then `docker-compose up` and asserts stdout line[1] split on `" | "` → `success`. The apptainer check runs **first** — if it fails, the assert raises inside the subTest and the docker-compose check for that case is never run.
 - **Harness contract:** the script's command line must appear in captured (piped) stdout *before* container output — hence `flush=True` in `execute()` (block-buffered print would otherwise land after the child's output).
-- `tearDownClass` rewrites `status:` lines in mappings.md — but only for cases where `test_case.evaluation` was assigned. A failing subTest skips the assignment (stays None) → **failed tests leave the status line stale**; `status: tests failed` is effectively never written automatically. Update status lines manually after failures.
+- `tearDownClass` rewrites `status:` lines in mappings.md — but only from `test_case.evaluation` values. A failing subTest skips the assignment (stays None) → **`status: tests failed` is effectively never written automatically**; worse, if the case's *other* subTest passed, tearDownClass writes `tests passed` despite the failure (e.g. `services_service_environment`: parsing passes, execution fails → line reads `tests passed`). The status line is **not** a reliable failure indicator — judge by the suite output.
 
 ## Extension workflow (for future feature tasks)
 
@@ -60,10 +60,16 @@ Run from the `tests/` directory (relative paths): `python3 -m unittest test_all 
 
 ## Baseline (2026-09-01)
 
-- 5/6 subTests pass (unittest reports `Ran 2 tests ... FAILED (failures=1)`). Failing: `services_service_environment` execution — the injected check uses `$$FOO`: docker-compose escapes `$$`→`$` before the container shell, apptainer-compose passes `$$` through, so the container's `sh` expands it to its PID → prints `failure`. Env passing itself works (`--env FOO=BAR` verified). Natural next feature: `$$` escape handling in `command` parsing (compose interpolation).
+- 14/16 subTests pass (unittest reports `Ran 2 tests ... FAILED (failures=1)`). Implemented cases all green: `command`, `environment`, `volumes`, `hostname` (`--hostname`), `working_dir` (`--cwd`), `dns` (`--dns`, comma-joined), `security_opt` (`no-new-privileges` → `--security no_new_privs`).
+- Known failure: `services_service_environment` execution — the injected check uses `$$FOO`: docker-compose escapes `$$`→`$` before the container shell, apptainer-compose passes `$$` through, so the container's `sh` expands it to its PID → prints `failure`. Env passing itself works (`--env FOO=BAR` verified). Deferred: `$$` escape handling (compose interpolation) — **not** an `open` case; each mappings.md case must stay atomic (one compose feature), so it would need its own case.
+- Considered and rejected for apptainer 1.5.3: `user` (no `--user` flag — `-u` is `--userns`), `tmpfs` (apptainer `--writable-tmpfs` takes no path; it is a whole-FS writable overlay), `pid` (docker rejects `pid: private` with "invalid PID mode"; `pid: host` is the apptainer default → vacuous), cgroup features `mem_limit`/`cpus`/`cpuset` (`--memory`/`--cpus` need cgroup access, fail unprivileged: dbus "No such file or directory").
 
 ## Known quirks
 
+- **YAML engine key ordering:** a key at service level must **not** follow a nested block (`environment` / `volumes` / `dns` / `security_opt`) — `recurse`'s `continue` branch never advances the reader and the parse hangs forever (frozen engine; legacy cases avoid this by putting list-valued keys last). In mappings.md sources, list-valued keys go **last** in the service.
+- `get_key_value` splits on `": "` — a `command:` value must not contain a literal colon+space (e.g. `cut -d: -f2` breaks it); self-check commands are written to avoid it.
+- `working_dir` → `--cwd` requires the directory to **exist** in the image (apptainer does not create it, unlike docker).
+- `hostname` values must be RFC-valid (no underscores — apptainer rejects `foo_bar` as "not a valid hostname").
 - `--dry-run` is parsed but never honored — `execute()` always runs the command.
 - `build:` is parsed but unused in command generation (no Dockerfile→sif flow wired into `up` yet).
 - `main()` executes **all** services sequentially.
