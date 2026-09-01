@@ -1213,6 +1213,7 @@ def state_volumes(r, d):
 
 
 def state_environment(r, d):
+    r.yn.value = r.yn.value.replace("\"", "").replace("'", "")
     return helper_add_dict(r, d, None, None)
 
 

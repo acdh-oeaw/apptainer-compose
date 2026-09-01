@@ -190,9 +190,9 @@ class Test(unittest.TestCase):
 
     def parse_test(self, test_case_target):
         args = argparse.Namespace(file="compose.yaml", COMMAND="up", dry_run=True)
-        csc = apptainer_compose.parse_compose(args)
-        cs = csc.compose_services[0]
-        parsed_command = cs.command_to_str(csc.args)
+        d = apptainer_compose.parse_compose(args)
+        d_service = list(d["services"].values())[0]
+        parsed_command = apptainer_compose.command_to_str(d_service, args)
         print(f"{test_case_target=}")
         print(f"{parsed_command=}")
         return self.evaluate_and_assert(parsed_command, test_case_target)
