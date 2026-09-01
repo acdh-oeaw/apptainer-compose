@@ -63,69 +63,8 @@ status: not implemented
 
 ## docker compose cli
 
-### up
-
-status: open
-
-source:
-```
-apptainer-compose -f foo.yaml up
-```
-target:
-```
-apptainer run docker://alpine:latest
-```
-
-### -f
-
-status: open
-
-source:
-```
-docker compose -f foo.yaml up
-```
-target:
-```
-apptainer-compose -f foo.yaml up
-```
-
-### -verbose
-
-status: open
-
-### --dry-run
-
-status: open
-
-### env vars from host
-
-status: open
-
-source:
-```
-export FOO=BAR
-docker compose up
-```
-target:
-```
-apptainer-compose up
-```
+not implemented
 
 ## apptainer cli
 
-### --writable-tmpfs
-
-status: open
-
-source:
-```
-services:
-  apptainer_compose_test:
-    image: alpine:latest
-    x-apptainer:
-      - writable-tmpfs
-```
-target:
-```
-apptainer --writable-tmpfs
-```
+not implemented
