@@ -1531,7 +1531,7 @@ def recurse(r, func):
     while r.yn is not None:
         if ind_here == r.indentation:
             d = func(r, d)
-        if r.indentation < ind_here:
+        if ind_here > r.indentation:
             return d
         if ind_here < r.indentation_previous:
             continue
@@ -1539,65 +1539,122 @@ def recurse(r, func):
     return d
 
 
-def state_volumes(r, d):
+def helper_set_up_dict(d):
+    if d is None:
+        d = {}
+    return d
+
+
+def helper_set_up_list(d):
     if d is None:
         d = []
-    if r.yn.is_list_item:
+    return d
+
+
+def helper_add_dict(r, d, func, key):
+    d = helper_set_up_dict(d)
+    if key is None:
+        key = r.yn.key
+    if func is None:
+        d[key] = r.yn.value
+    else:
+        d[key] = recurse(r, func)
+    return d
+
+
+def helper_add_list(r, d, func):
+    d = helper_set_up_list(d)
+    if func is None:
         d.append(r.yn.value)
+    else:
+        d.append(recurse(r, func))
     return d
 
 
-def state_build_contents(r, d):
+def extract_key(r, d, func):
     if d is None:
         d = {}
+    key = r.yn.key
+    d[key] = recurse(r, func)
+    return d
+
+
+def helper_take_value_or_recurse(r, d, func, key):
+    d = helper_set_up_dict(d)
+    if r.yn.value is not None:
+        value = r.yn.value
+    else:
+        value = recurse(r, func)
+    d[key] = value
+    return d
+
+
+def state_build(r, d):
     if r.yn.key == "context":
-        d["context"] = r.yn.value
+        return helper_add_dict(r, d, None, "context")
     elif r.yn.key == "dockerfile":
-        d["dockerfile"] = r.yn.value
+        return helper_add_dict(r, d, None, "dockerfile")
     else:
         raise ParsingError()
-    return d
 
 
-def state_service_contents(r, d):
-    if d is None:
-        d = {}
-    if r.yn.key == "build":
-        if r.yn.value is not None:
-            value = r.yn.value
-        else:
-            value = recurse(r, state_build_contents)
-        d["build"] = value
-    elif r.yn.key == "image":
-        if r.yn.value is not None:
-            print("done image")
-        d["image"] = r.yn.value
-    elif r.yn.key == "volumes":
-        d["volumes"] = recurse(r, state_volumes)
-    else:
-        raise ParsingError()
-    return d
+def state_volumes(r, d):
+    return helper_add_list(r, d, None)
+
+
+def state_environment(r, d):
+    return helper_add_dict(r, d, None, None)
 
 
 def state_service(r, d):
-    if d is None:
-        d = {}
-    if r.yn.value is not None:
-        raise ParsingError()
+    if r.yn.key == "build":
+        return helper_take_value_or_recurse(r, d, state_build, "build")
+    elif r.yn.key == "image":
+        return helper_add_dict(r, d, None, "image")
+    elif r.yn.key == "volumes":
+        return helper_add_dict(r, d, state_volumes, "volumes")
+    elif r.yn.key == "environment":
+        return helper_add_dict(r, d, state_environment, "environment")
     else:
-        k = r.yn.key
-        d[k] = recurse(r, state_service_contents)
-    return d
+        raise ParsingError()
 
 
 def state_services(r, d):
-    if d is None:
-        d = {}
-    if r.yn.key != "services" or r.yn.value is not None or r.indentation != 0:
-        raise ParsingError()
-    else:
-        d["services"] = recurse(r, state_service)
-    return d
+    return helper_add_dict(r, d, state_service, None)
+
+
+def state_root(r, d):
+    return helper_add_dict(r, d, state_services, "services")
+
+
+def command_to_list(d_service, args):
+    l = ["apptainer"]
+    if args.COMMAND == "up":
+        l.append("run")
+    for vol in d_service.get("volumes", []):
+        l += ["--bind", vol]
+    environment = d_service.get("environment")
+    if environment:
+        for k, v in environment.items():
+            if v is not None:
+                l += ["--env", k + "=" + v]
+    image = d_service.get("image")
+    if image:
+        l.append("docker://" + image)
+    return l
+
+def command_to_str(d_service, args):
+    s = ""
+    prev = None
+    for e in command_to_list(d_service, args):
+        if prev == "--env":
+            var, val = e.split("=")
+            s += f"{var}='{val}' "
+        else:
+            s += e + " "
+        prev = e
+    s = s[:-1]
+    return s
 
 
 # - main -------------------------------------------------------------------------------------------
@@ -1631,34 +1688,20 @@ def parse_compose(args):
     # gen = generator_ind_key_val(args.file)
     # return state_services(gen)
     r = Reader(args.file)
-    return recurse(r, state_services)
+    return recurse(r, state_root)
 
 
-def execute(cs, args):
-    if args.verbose:
-        print(cs.name)
-        print(cs)
-    print(cs.command_to_str(args))
-    if not args.dry_run:
-        cmd_as_list = cs.command_to_list(args)
-        subprocess.run(cmd_as_list)
+def execute(d_service, args):
+    print(command_to_str(d_service, args))
+    cmd_as_list = command_to_list(d_service, args)
+    subprocess.run(cmd_as_list)
 
 
 def main():
     args = parse_args()
-    csc = parse_compose(args)
-    for cs in csc.compose_services:
-        if csc.args.COMMAND == "build" or (
-            csc.args.COMMAND == "up"
-            and not csc.args.dry_run
-            and cs.sif_file is not None
-            and not os.path.exists(cs.sif_file)
-        ):
-            convert_dockerfile_to_apptainer(cs.build, cs.def_file)
-            build_args = copy(csc.args)
-            build_args.COMMAND = "build"
-            execute(cs, build_args)
-        execute(cs, csc.args)
+    d = parse_compose(args)
+    for d_service in d["services"].values():
+        execute(d_service, args)
 
 
 if __name__ == "__main__":
