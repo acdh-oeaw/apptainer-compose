@@ -1,5 +1,5 @@
 .idea
-/exp_*
+**/exp_*
 **/__pycache__
 **/*.def
 **/*.sif
