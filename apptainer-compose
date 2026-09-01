@@ -1229,6 +1229,8 @@ def state_service(r, d):
         return helper_add_dict(r, d, state_volumes, "volumes")
     elif r.yn.key == "environment":
         return helper_add_dict(r, d, state_environment, "environment")
+    elif r.yn.key == "hostname":
+        return helper_add_dict(r, d, None, "hostname")
     else:
         raise ParsingError()
 
@@ -1252,6 +1254,9 @@ def command_to_list(d_service, args):
         for k, v in environment.items():
             if v is not None:
                 l += ["--env", k + "=" + v]
+    hostname = d_service.get("hostname")
+    if hostname:
+        l += ["--hostname", hostname]
     image = d_service.get("image")
     if image:
         l.append("docker://" + image)

@@ -42,7 +42,7 @@ apptainer run docker://alpine:latest echo success
 
 ### services:\<service>:environment
 
-status: tests failed
+status: tests passed
 
 source:
 ```
@@ -59,19 +59,19 @@ apptainer run --env FOO='BAR' docker://alpine:latest
 
 ### services:\<service>:hostname
 
-status: open
+status: tests passed
 
 source:
 ```
 services:
   apptainer_compose_test:
     image: alpine:latest
-    hostname: apptainer_compose_test
-    command: sh -c 'if [ "$(hostname)" = "apptainer_compose_test" ]; then echo success; else echo failure; fi'
+    hostname: apptainer-compose-test
+    command: sh -c 'if [ "$(hostname)" = "apptainer-compose-test" ]; then echo success; else echo failure; fi'
 ```
 target:
 ```
-apptainer run --hostname apptainer_compose_test docker://alpine:latest sh -c if [ "$(hostname)" = "apptainer_compose_test" ]; then echo success; else echo failure; fi
+apptainer run --hostname apptainer-compose-test docker://alpine:latest sh -c if [ "$(hostname)" = "apptainer-compose-test" ]; then echo success; else echo failure; fi
 ```
 
 ### services:\<service>:working_dir
