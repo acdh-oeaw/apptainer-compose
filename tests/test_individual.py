@@ -13,7 +13,6 @@ spec.loader.exec_module(apptainer_compose)
 
 
 sys.argv = None
-# os.chdir("./test_cases/compose_yaml/execution/services_service_environment")
-os.chdir("../tmp_parsing_refactoring_test/")
+os.chdir("./test_cases/compose_yaml/execution/services_service_environment")
 sys.argv = ["../apptainer-compose", "--verbose", "up"]
 apptainer_compose.main()
