@@ -1,17 +1,23 @@
 
-There are three domains of functionality to be mapped:
+There are three sets of functionalities to be mapped:
 
 - [compose yaml](#compose-yaml)
 - [docker compose cli](#docker-compose-cli)
 - [apptainer cli](#apptainer-cli)
 
+Within each set is a list of features, their statuses, and an example mapping.
+
 Each status can be one of: 
+
 - status: tests passed
 - status: tests failed
 - status: open
 - status: not implemented
 
 ## compose yaml
+
+This set covers purely the contents of docker compose yaml files and what their
+mapped apptainer equivalents are.
 
 ### services:\<service>:volumes
 
@@ -497,6 +503,9 @@ More of an orchestration feature, with less relevance for apptainer
 
 ## docker compose cli
 
+This set functionalities of the docker compose CLI and their apptaincer-compose
+equivalents.
+
 ### up
 
 status: tests passed
@@ -543,6 +552,11 @@ status: not implemented
 activates compose profiles; the profiles feature itself is blacklisted in the compose yaml section, so there is nothing to select
 
 ## apptainer cli
+
+This set covers cli functionalities of the apptainer CLI and how they are
+represented within compose yaml files with the `x-apptainer` key. Note that
+the apptainer-compose CLI does not support any apptainer CLI as that might
+conflict with the docker compose CLI.
 
 ### --writable-tmpfs
 
