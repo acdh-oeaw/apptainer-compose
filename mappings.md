@@ -215,26 +215,6 @@ target:
 apptainer run --no-init docker://alpine:latest echo success
 ```
 
-### services:\<service>:profiles
-
-status: tests passed
-
-source:
-```
-services:
-  apptainer_compose_test:
-    image: alpine:latest
-    command: echo success
-  other:
-    image: alpine:latest
-    profiles:
-      - test
-```
-target:
-```
-apptainer run docker://alpine:latest echo success
-```
-
 ### version
 
 status: tests passed
@@ -500,6 +480,12 @@ apptainer --dns accepts only server addresses, not search domains or options
 status: not implemented
 
 cgroup features; --pids-limit exists but needs cgroup access (fails unprivileged, like mem_limit/cpus/cpuset), and the cpu_rt_*/mem_swappiness options have no apptainer flag at all
+
+### services:\<service>:profiles
+
+status: not implemented
+
+More of an orchestration feature, with less relevance for apptainer
 
 </details>
 
