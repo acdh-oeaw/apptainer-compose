@@ -126,7 +126,12 @@ def extract_test_data():
                 if line.startswith("### "):
                     example_case_name = line
                     example_case_id = (
-                        line[4:-1].replace(":\\<", "_").replace(">:", "_").replace("-", "_")
+                        line[4:-1]
+                        .replace(":\\<", "_")
+                        .replace(">:", "_")
+                        .replace("-", "_")
+                        .replace("\\<", "_")
+                        .replace(">", "_")
                     )
             if example_case_id:
                 if line.startswith("status: "):

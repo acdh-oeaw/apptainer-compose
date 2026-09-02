@@ -517,7 +517,7 @@ target:
 apptainer-compose -f foo.yaml up
 ```
 
-### run
+### up\<service>
 
 status: tests passed
 
@@ -529,5 +529,5 @@ docker compose up apptainer_compose_test
 ```
 target:
 ```
-apptainer-compose run apptainer_compose_test
+apptainer-compose up apptainer_compose_test
 ```
