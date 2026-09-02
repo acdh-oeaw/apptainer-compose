@@ -740,6 +740,19 @@ target:
 apptainer-compose up --no-color
 ```
 
+### --no-deps
+
+status: open
+
+source:
+```
+docker compose up --no-deps
+```
+target:
+```
+apptainer-compose up --no-deps
+```
+
 ### --profile
 
 status: not implemented

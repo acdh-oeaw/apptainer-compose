@@ -1384,6 +1384,7 @@ def parse_args():
     up_parser.add_argument("--abort-on-container-failure", action="store_true", help="stop all containers if any failed")
     up_parser.add_argument("--exit-code-from", help="return exit code of selected service")
     up_parser.add_argument("--no-color", action="store_true", help="monochrome output")
+    up_parser.add_argument("--no-deps", action="store_true", help="do not start linked services")
     subparsers.add_parser("build", help="Stop services")
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")
