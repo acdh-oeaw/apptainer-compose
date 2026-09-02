@@ -805,6 +805,19 @@ target:
 apptainer-compose up --remove-orphans
 ```
 
+### -V
+
+status: open
+
+source:
+```
+docker compose up -V
+```
+target:
+```
+apptainer-compose up -V
+```
+
 ### --profile
 
 status: not implemented
