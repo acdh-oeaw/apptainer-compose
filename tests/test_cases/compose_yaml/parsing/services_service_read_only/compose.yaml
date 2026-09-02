@@ -1,0 +1,5 @@
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    read_only: false
+    command: sh -c 'if touch /tmp/x; then echo success; else echo failure; fi'

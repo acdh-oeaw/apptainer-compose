@@ -181,6 +181,23 @@ target:
 apptainer run --env FOO='BAR' docker://alpine:latest sh -c if [ "$FOO" = "BAR" ]; then echo success; else echo failure; fi
 ```
 
+### services:\<service>:read_only
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    read_only: false
+    command: sh -c 'if touch /tmp/x; then echo success; else echo failure; fi'
+```
+target:
+```
+apptainer run --writable-tmpfs docker://alpine:latest sh -c if touch /tmp/x; then echo success; else echo failure; fi
+```
+
 ### version
 
 status: tests passed
