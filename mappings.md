@@ -584,6 +584,19 @@ target:
 apptainer-compose --ansi never up
 ```
 
+### --parallel
+
+status: open
+
+source:
+```
+docker compose --parallel 1 up
+```
+target:
+```
+apptainer-compose --parallel 1 up
+```
+
 ### --profile
 
 status: not implemented
