@@ -502,3 +502,63 @@ status: not implemented
 cgroup features; --pids-limit exists but needs cgroup access (fails unprivileged, like mem_limit/cpus/cpuset), and the cpu_rt_*/mem_swappiness options have no apptainer flag at all
 
 </details>
+
+## docker compose cli
+
+### up
+
+status: open
+
+source:
+```
+docker compose up
+```
+target:
+```
+apptainer-compose up
+```
+
+### -f
+
+status: open
+
+source:
+```
+docker compose -f foo.yaml up
+```
+target:
+```
+apptainer-compose -f foo.yaml up
+```
+
+### --dry-run
+
+status: open
+
+source:
+```
+docker compose --dry-run up
+```
+target:
+```
+apptainer-compose --dry-run up
+```
+
+## apptainer cli
+
+### --writable-tmpfs
+
+status: open
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - writable-tmpfs
+```
+target:
+```
+apptainer run --writable-tmpfs docker://alpine:latest
+```
