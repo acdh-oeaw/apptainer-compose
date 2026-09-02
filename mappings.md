@@ -597,6 +597,19 @@ target:
 apptainer-compose --parallel 1 up
 ```
 
+### --compatibility
+
+status: open
+
+source:
+```
+docker compose --compatibility up
+```
+target:
+```
+apptainer-compose --compatibility up
+```
+
 ### --profile
 
 status: not implemented
