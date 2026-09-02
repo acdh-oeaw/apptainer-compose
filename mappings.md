@@ -1,4 +1,10 @@
 
+There are three domains of functionality to be mapped:
+
+- [compose yaml](#compose-yaml)
+- [docker compose cli](#docker-compose-cli)
+- [apptainer cli](#apptainer-cli)
+
 Each status can be one of: 
 - status: tests passed
 - status: tests failed
