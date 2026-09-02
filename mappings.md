@@ -675,6 +675,19 @@ target:
 apptainer-compose up --no-build
 ```
 
+### --quiet-build
+
+status: open
+
+source:
+```
+docker compose up --quiet-build
+```
+target:
+```
+apptainer-compose up --quiet-build
+```
+
 ### --profile
 
 status: not implemented
