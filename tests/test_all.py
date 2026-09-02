@@ -86,6 +86,7 @@ def create_test_case_data(
     if example_section == "docker_compose_cli":
         kind_list = ["execution"]
         example_source = example_source[:-1]
+        example_source = example_source.replace("docker compose", "docker-compose")
     if example_section == "apptainer_cli":
         return
     for kind in kind_list:
@@ -217,6 +218,7 @@ class Test(unittest.TestCase):
         return self.evaluate_and_assert(parsed_command, test_case_target)
 
     def execute_apptainer(self, command):
+        print(f"execute_docker: {command=}")
         command = command.split(" ")
         result = subprocess.run(command, capture_output=True, text=True)
         print(f"{result.stderr=}")
@@ -226,6 +228,7 @@ class Test(unittest.TestCase):
 
     def execute_docker(self, command):
         command = command.split(" ")
+        print(f"execute_docker: {command=}")
         result = subprocess.run(command, capture_output=True, text=True)
         print(f"{result.stderr=}")
         print(f"{result.stdout=}")
