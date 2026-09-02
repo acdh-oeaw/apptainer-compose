@@ -1376,6 +1376,7 @@ def parse_args():
     up_parser = subparsers.add_parser("up", help="Start services")
     up_parser.add_argument("service_name", nargs="*", help="Service name")
     up_parser.add_argument("--pull", help="pull policy")
+    up_parser.add_argument("--quiet-pull", action="store_true", help="quiet pull")
     subparsers.add_parser("build", help="Stop services")
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")
