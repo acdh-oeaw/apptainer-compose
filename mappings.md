@@ -701,6 +701,19 @@ target:
 apptainer-compose up --abort-on-container-exit
 ```
 
+### --abort-on-container-failure
+
+status: open
+
+source:
+```
+docker compose up --abort-on-container-failure
+```
+target:
+```
+apptainer-compose up --abort-on-container-failure
+```
+
 ### --profile
 
 status: not implemented

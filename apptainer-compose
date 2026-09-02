@@ -1381,6 +1381,7 @@ def parse_args():
     up_parser.add_argument("--no-build", action="store_true", help="do not build")
     up_parser.add_argument("--quiet-build", action="store_true", help="quiet build")
     up_parser.add_argument("--abort-on-container-exit", action="store_true", help="stop all containers if any stopped")
+    up_parser.add_argument("--abort-on-container-failure", action="store_true", help="stop all containers if any failed")
     subparsers.add_parser("build", help="Stop services")
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")
