@@ -450,3 +450,50 @@ status: not implemented
 
 cgroup features; the flags exist (--memory-reservation, --memory-swap, --cpu-shares, --blkio-weight, --oom-kill-disable) but need cgroup access, which fails unprivileged (like mem_limit/cpus/cpuset)
 
+### volumes_from
+
+status: not implemented
+
+creates a hard dependency on the referenced service (apptainer rejects a profiled source as undefined), and a second running service breaks the test harness' single-service stdout assertion; see depends_on
+
+### expose
+
+status: not implemented
+
+vacuous without container networks: it only documents ports between linked containers (see networks/links)
+
+### links, external_links
+
+status: not implemented
+
+apptainer has no container networks or inter-container linking (see networks)
+
+### secrets
+
+status: not implemented
+
+file objects, and the frozen harness regenerates case folders with only compose.yaml, so referenced secret files cannot exist (like env_file)
+
+### include, extends
+
+status: not implemented
+
+multi-file / cross-service composition; the converter parses a single self-contained compose file
+
+### isolation
+
+status: not implemented
+
+Windows-only compose concept (process/hyperv); apptainer on Linux has no equivalent
+
+### dns_search, dns_opt
+
+status: not implemented
+
+apptainer --dns accepts only server addresses, not search domains or options
+
+### pids_limit, cpu_rt_period, cpu_rt_runtime, mem_swappiness
+
+status: not implemented
+
+cgroup features; --pids-limit exists but needs cgroup access (fails unprivileged, like mem_limit/cpus/cpuset), and the cpu_rt_*/mem_swappiness options have no apptainer flag at all
