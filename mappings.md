@@ -553,7 +553,7 @@ activates compose profiles; the profiles feature itself is blacklisted in the co
 
 ## apptainer cli
 
-This set covers cli functionalities of the apptainer CLI and how they are
+This set covers functionalities of the apptainer CLI and how they are
 represented within compose yaml files with the `x-apptainer` key. Note that
 the apptainer-compose CLI does not support any apptainer CLI as that might
 conflict with the docker compose CLI.
