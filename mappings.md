@@ -766,6 +766,19 @@ target:
 apptainer-compose up --no-recreate
 ```
 
+### --force-recreate
+
+status: open
+
+source:
+```
+docker compose up --force-recreate
+```
+target:
+```
+apptainer-compose up --force-recreate
+```
+
 ### --profile
 
 status: not implemented
