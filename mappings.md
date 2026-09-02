@@ -163,6 +163,23 @@ target:
 apptainer run docker://alpine:latest echo success
 ```
 
+### version
+
+status: tests passed
+
+source:
+```
+version: "3.8"
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    command: echo success
+```
+target:
+```
+apptainer run docker://alpine:latest echo success
+```
+
 ### networks
 
 status: not implemented

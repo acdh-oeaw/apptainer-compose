@@ -1265,6 +1265,11 @@ def state_services(r, d):
 
 
 def state_root(r, d):
+    if r.yn.key == "version":
+        r.next()
+        if r.yn is not None and r.indentation == 0 and r.yn.key == "services":
+            return helper_add_dict(r, d, state_services, "services")
+        return d
     return helper_add_dict(r, d, state_services, "services")
 
 
