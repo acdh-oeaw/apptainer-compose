@@ -753,6 +753,19 @@ target:
 apptainer-compose up --no-deps
 ```
 
+### --no-recreate
+
+status: open
+
+source:
+```
+docker compose up --no-recreate
+```
+target:
+```
+apptainer-compose up --no-recreate
+```
+
 ### --profile
 
 status: not implemented
