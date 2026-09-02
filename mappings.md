@@ -268,3 +268,147 @@ apptainer --cpuset-cpus/--cpuset-mems require cgroup access, which fails unprivi
 status: not implemented
 
 apptainer is not about multi service orchestration; a faithful mapping would require health checks and more, which is not worth it
+
+### cap_add
+
+status: not implemented
+
+apptainer does not aim for full isolation like docker; capability management is secondary and not mapped
+
+### cap_drop
+
+status: not implemented
+
+apptainer does not aim for full isolation like docker; capability management is secondary and not mapped
+
+### privileged
+
+status: not implemented
+
+apptainer does not aim for full isolation like docker; there is no --privileged equivalent (security is secondary)
+
+### ipc
+
+status: not implemented
+
+apptainer does not aim for full isolation like docker; IPC namespace control (--ipc) is secondary and not mapped, host IPC is already the default
+
+### devices
+
+status: not implemented
+
+apptainer --device only accepts fully-qualified CDI device names (<vendor>/<class>=<name> with a CDI spec), not generic host device nodes like docker devices:
+
+### shm_size
+
+status: not implemented
+
+apptainer has no flag to size /dev/shm
+
+### ulimits
+
+status: not implemented
+
+apptainer has no ulimit flags
+
+### sysctls
+
+status: not implemented
+
+apptainer has no sysctl flags (would need host kernel access)
+
+### tty
+
+status: not implemented
+
+apptainer has no TTY allocation flag; TTY use is detected automatically from the session
+
+### stdin_open
+
+status: not implemented
+
+apptainer always passes stdin through and has no detached mode, so there is nothing to map
+
+### domainname
+
+status: not implemented
+
+apptainer has no --domainname flag
+
+### extra_hosts
+
+status: not implemented
+
+apptainer has no --add-host flag
+
+### healthcheck
+
+status: not implemented
+
+apptainer has no runtime health checks
+
+### logging
+
+status: not implemented
+
+apptainer has no logging drivers; output goes to the terminal
+
+### pull_policy
+
+status: not implemented
+
+apptainer has no pull policy flag; SIF caching is automatic
+
+### restart
+
+status: not implemented
+
+apptainer runs one-shot; there is no restart policy or supervision
+
+### container_name
+
+status: not implemented
+
+apptainer has no container naming at runtime
+
+### group_add
+
+status: not implemented
+
+apptainer has no --group-add flag
+
+### userns_mode
+
+status: not implemented
+
+apptainer has no user namespace remapping configuration (-u/--userns is a different thing)
+
+### stop_signal
+
+status: not implemented
+
+apptainer has no process supervision or stop signaling (stop_signal/stop_grace_period)
+
+### deploy
+
+status: not implemented
+
+resources limits are cgroup features (see mem_limit/cpus/cpuset); replicas and restart_policy are orchestration (see depends_on)
+
+### env_file
+
+status: not implemented
+
+apptainer has --env-file, but the frozen harness cannot test it: case folders are regenerated with only compose.yaml, so a referenced env file cannot exist
+
+### network_mode
+
+status: not implemented
+
+apptainer has no container networks (see networks); network_mode: host is already the default
+
+### mem_reservation, memswap_limit, cpu_shares, cpu_quota, blkio_weight, oom_kill_disable, oom_score_adj
+
+status: not implemented
+
+cgroup features; the flags exist (--memory-reservation, --memory-swap, --cpu-shares, --blkio-weight, --oom-kill-disable) but need cgroup access, which fails unprivileged (like mem_limit/cpus/cpuset)
