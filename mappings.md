@@ -779,6 +779,19 @@ target:
 apptainer-compose up --force-recreate
 ```
 
+### --always-recreate-deps
+
+status: open
+
+source:
+```
+docker compose up --always-recreate-deps
+```
+target:
+```
+apptainer-compose up --always-recreate-deps
+```
+
 ### --profile
 
 status: not implemented
