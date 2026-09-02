@@ -610,6 +610,19 @@ target:
 apptainer-compose --compatibility up
 ```
 
+### --all-resources
+
+status: open
+
+source:
+```
+docker compose --all-resources up
+```
+target:
+```
+apptainer-compose --all-resources up
+```
+
 ### --profile
 
 status: not implemented

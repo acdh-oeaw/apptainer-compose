@@ -1371,6 +1371,7 @@ def parse_args():
     parser.add_argument("--ansi", help="ansi color control")
     parser.add_argument("--parallel", help="max parallelism")
     parser.add_argument("--compatibility", action="store_true", help="backward compatibility mode")
+    parser.add_argument("--all-resources", action="store_true", help="include all resources")
     subparsers = parser.add_subparsers(dest="COMMAND")
     up_parser = subparsers.add_parser("up", help="Start services")
     up_parser.add_argument("service_name", nargs="*", help="Service name")
