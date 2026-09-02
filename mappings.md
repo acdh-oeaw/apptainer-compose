@@ -714,6 +714,19 @@ target:
 apptainer-compose up --abort-on-container-failure
 ```
 
+### --exit-code-from
+
+status: open
+
+source:
+```
+docker compose up --exit-code-from apptainer_compose_test
+```
+target:
+```
+apptainer-compose up --exit-code-from apptainer_compose_test
+```
+
 ### --profile
 
 status: not implemented
