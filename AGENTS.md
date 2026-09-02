@@ -33,7 +33,19 @@ Translation of docker-compose to apptainer CLI, where possible.
 
 ## Test harness (tests/test_all.py, frozen)
 
-Run from the `tests/` directory (relative paths): `python3 -m unittest test_all -v`
+Run from the `tests/` directory (relative paths). Either the full suite:
+
+```
+python3 -m unittest test_all -v
+```
+
+or individual test batches (one per suite method):
+
+```
+python3 -m unittest test_all.Test.test_1_compose_yaml_parsing -v
+python3 -m unittest test_all.Test.test_2_compose_yaml_execution -v
+python3 -m unittest test_all.Test.test_3_compose_cli_execution -v
+```
 
 - `extract_test_data()` parses mappings.md line-by-line: `## compose yaml` and `## docker compose cli` sections enabled (`## apptainer cli` reserved — recognized, but `create_test_case_data` returns early, so no cases are generated); case id = `###` name with `:\<`→`_`, `>:`→`_`, and `-`→`_` (so `-f` → `_f`); `status: not implemented` cases skipped.
 - Suite shape: a single `Test` class with exactly **three** methods — `test_1_compose_yaml_parsing`, `test_2_compose_yaml_execution`, and `test_3_compose_cli_execution` — each iterating over its cases in `subTest()` blocks. unittest therefore always reports `Ran 3 tests`; a failure in any case fails its whole method (`failures=1`). Pass/fail tallies like "5/6" are **subTest-level** counts (each compose yaml case contributes 2: parsing + execution; each docker compose cli case contributes 1: execution).
