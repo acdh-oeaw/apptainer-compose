@@ -516,22 +516,3 @@ target:
 ```
 apptainer-compose -f foo.yaml up
 ```
-
-## apptainer cli
-
-### --writable-tmpfs
-
-status: open
-
-source:
-```
-services:
-  apptainer_compose_test:
-    image: alpine:latest
-    x-apptainer:
-      - writable-tmpfs
-```
-target:
-```
-apptainer run --writable-tmpfs docker://alpine:latest
-```
