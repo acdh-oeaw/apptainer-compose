@@ -545,6 +545,19 @@ target:
 apptainer-compose up apptainer_compose_test
 ```
 
+### -p
+
+status: open
+
+source:
+```
+docker compose -p foo up
+```
+target:
+```
+apptainer-compose -p foo up
+```
+
 ### --profile
 
 status: not implemented
