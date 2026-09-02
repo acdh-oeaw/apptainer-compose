@@ -521,8 +521,6 @@ apptainer-compose -f foo.yaml up
 
 status: tests passed
 
-docker compose run prints raw container output (no "name | " prefix), which the harness cannot assert; up <service> is the closest verifiable equivalent
-
 source:
 ```
 docker compose up apptainer_compose_test
