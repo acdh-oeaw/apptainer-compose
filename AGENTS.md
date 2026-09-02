@@ -63,7 +63,7 @@ Run from the `tests/` directory (relative paths): `python3 -m unittest test_all 
 
 - 16/16 subTests pass (unittest reports `Ran 2 tests ... OK`). Implemented cases all green: `command`, `environment`, `volumes`, `hostname` (`--hostname`), `working_dir` (`--cwd`), `dns` (`--dns`, comma-joined), `security_opt` (`no-new-privileges` → `--security no_new_privs`).
 - Compose `$$`→`$` interpolation is applied in `command` parsing (before `shlex.split`) — this makes the harness-injected `$$FOO` self-check in `services_service_environment` pass.
-- Considered and rejected for apptainer 1.5.3: `user` (no `--user` flag — `-u` is `--userns`), `tmpfs` (apptainer `--writable-tmpfs` takes no path; it is a whole-FS writable overlay), `pid` (docker rejects `pid: private` with "invalid PID mode"; `pid: host` is the apptainer default → vacuous), cgroup features `mem_limit`/`cpus`/`cpuset` (`--memory`/`--cpus` need cgroup access, fail unprivileged: dbus "No such file or directory").
+- **Blacklist (persisted in mappings.md as `status: not implemented`, do not implement):** `networks` (apptainer has no container networks), `ports` (no port forwarding), `user` (no `--user` flag — `-u` is `--userns`), `tmpfs` (apptainer `--writable-tmpfs` takes no path; it is a whole-FS writable overlay), `pid` (compose only allows `pid: host`, which is already the apptainer default → vacuous), `mem_limit`/`cpus`/`cpuset` (cgroup features — `--memory`/`--cpus`/`--cpuset-*` need cgroup access, fail unprivileged: dbus "No such file or directory").
 
 ## Known quirks
 

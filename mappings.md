@@ -139,3 +139,39 @@ apptainer does not support container networks
 status: not implemented
 
 apptainer does not support forwardinng ports
+
+### user
+
+status: not implemented
+
+apptainer cannot set the user inside the container (no --user flag; -u is --userns)
+
+### tmpfs
+
+status: not implemented
+
+apptainer --writable-tmpfs takes no path (it makes the whole file system writable), so individual tmpfs mounts cannot be mapped
+
+### pid
+
+status: not implemented
+
+compose only allows pid: host, which is already apptainer's default, so there is nothing to map
+
+### mem_limit
+
+status: not implemented
+
+apptainer --memory requires cgroup access, which fails unprivileged (dbus: No such file or directory)
+
+### cpus
+
+status: not implemented
+
+apptainer --cpus requires cgroup access, which fails unprivileged (dbus: No such file or directory)
+
+### cpuset
+
+status: not implemented
+
+apptainer --cpuset-cpus/--cpuset-mems require cgroup access, which fails unprivileged (dbus: No such file or directory)
