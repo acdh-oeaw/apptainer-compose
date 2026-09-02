@@ -1236,6 +1236,10 @@ def state_security_opt(r, d):
     return helper_add_list(r, d, None)
 
 
+def state_profiles(r, d):
+    return helper_add_list(r, d, None)
+
+
 def state_service(r, d):
     if r.yn.key == "build":
         return helper_take_value_or_recurse(r, d, state_build, "build")
@@ -1267,6 +1271,8 @@ def state_service(r, d):
         return helper_add_dict(r, d, None, "read_only")
     elif r.yn.key == "init":
         return helper_add_dict(r, d, None, "init")
+    elif r.yn.key == "profiles":
+        return helper_add_dict(r, d, state_profiles, "profiles")
     else:
         raise ParsingError()
 
@@ -1399,6 +1405,8 @@ def main():
         execute(d_service, args)
         return
     for d_service in d["services"].values():
+        if d_service.get("profiles"):
+            continue
         execute(d_service, args)
 
 

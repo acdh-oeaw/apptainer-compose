@@ -215,6 +215,26 @@ target:
 apptainer run --no-init docker://alpine:latest echo success
 ```
 
+### services:\<service>:profiles
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    command: echo success
+  other:
+    image: alpine:latest
+    profiles:
+      - test
+```
+target:
+```
+apptainer run docker://alpine:latest echo success
+```
+
 ### version
 
 status: tests passed
@@ -429,3 +449,4 @@ apptainer has no container networks (see networks); network_mode: host is alread
 status: not implemented
 
 cgroup features; the flags exist (--memory-reservation, --memory-swap, --cpu-shares, --blkio-weight, --oom-kill-disable) but need cgroup access, which fails unprivileged (like mem_limit/cpus/cpuset)
+
