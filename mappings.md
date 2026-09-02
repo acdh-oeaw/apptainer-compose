@@ -131,3 +131,11 @@ apptainer run --security no_new_privs docker://alpine:latest sh -c if grep -Eq "
 ### networks
 
 status: not implemented
+
+apptainer does not support container networks
+
+### ports
+
+status: not implemented
+
+apptainer does not support forwardinng ports
