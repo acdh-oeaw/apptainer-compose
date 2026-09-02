@@ -560,7 +560,7 @@ apptainer-compose -p foo up
 
 ### --project-directory
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -573,7 +573,7 @@ apptainer-compose --project-directory . up
 
 ### --ansi
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -586,7 +586,7 @@ apptainer-compose --ansi never up
 
 ### --parallel
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -599,7 +599,7 @@ apptainer-compose --parallel 1 up
 
 ### --compatibility
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -612,7 +612,7 @@ apptainer-compose --compatibility up
 
 ### --all-resources
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -625,7 +625,7 @@ apptainer-compose --all-resources up
 
 ### --pull
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -638,7 +638,7 @@ apptainer-compose up --pull never
 
 ### --quiet-pull
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -651,7 +651,7 @@ apptainer-compose up --quiet-pull
 
 ### --build
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -664,7 +664,7 @@ apptainer-compose up --build
 
 ### --no-build
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -677,7 +677,7 @@ apptainer-compose up --no-build
 
 ### --quiet-build
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -690,7 +690,7 @@ apptainer-compose up --quiet-build
 
 ### --abort-on-container-exit
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -703,7 +703,7 @@ apptainer-compose up --abort-on-container-exit
 
 ### --abort-on-container-failure
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -716,7 +716,7 @@ apptainer-compose up --abort-on-container-failure
 
 ### --exit-code-from
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -729,7 +729,7 @@ apptainer-compose up --exit-code-from apptainer_compose_test
 
 ### --no-color
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -742,7 +742,7 @@ apptainer-compose up --no-color
 
 ### --no-deps
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -755,7 +755,7 @@ apptainer-compose up --no-deps
 
 ### --no-recreate
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -768,7 +768,7 @@ apptainer-compose up --no-recreate
 
 ### --force-recreate
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -781,7 +781,7 @@ apptainer-compose up --force-recreate
 
 ### --always-recreate-deps
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -794,7 +794,7 @@ apptainer-compose up --always-recreate-deps
 
 ### --remove-orphans
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -807,7 +807,7 @@ apptainer-compose up --remove-orphans
 
 ### -V
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -820,7 +820,7 @@ apptainer-compose up -V
 
 ### -t
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -833,7 +833,7 @@ apptainer-compose up -t 5
 
 ### -y
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -846,7 +846,7 @@ apptainer-compose up -y
 
 ### --attach
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -859,7 +859,7 @@ apptainer-compose up --attach apptainer_compose_test
 
 ### --no-attach
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -872,7 +872,7 @@ apptainer-compose up --no-attach apptainer_compose_test
 
 ### --scale
 
-status: open
+status: tests passed
 
 source:
 ```

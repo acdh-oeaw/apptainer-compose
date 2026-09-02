@@ -1,0 +1,4 @@
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    command: echo success
