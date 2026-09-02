@@ -571,6 +571,19 @@ target:
 apptainer-compose --project-directory . up
 ```
 
+### --ansi
+
+status: open
+
+source:
+```
+docker compose --ansi never up
+```
+target:
+```
+apptainer-compose --ansi never up
+```
+
 ### --profile
 
 status: not implemented

@@ -1368,6 +1368,7 @@ def parse_args():
     parser.add_argument("--dry-run", action="store_true", help="dry run")
     parser.add_argument("-p", "--project-name", help="project name")
     parser.add_argument("--project-directory", help="project directory")
+    parser.add_argument("--ansi", help="ansi color control")
     subparsers = parser.add_subparsers(dest="COMMAND")
     up_parser = subparsers.add_parser("up", help="Start services")
     up_parser.add_argument("service_name", nargs="*", help="Service name")
