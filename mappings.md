@@ -529,3 +529,9 @@ target:
 ```
 apptainer-compose up apptainer_compose_test
 ```
+
+### --profile
+
+status: not implemented
+
+activates compose profiles; the profiles feature itself is blacklisted in the compose yaml section, so there is nothing to select
