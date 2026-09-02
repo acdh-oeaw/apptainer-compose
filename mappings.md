@@ -558,6 +558,19 @@ target:
 apptainer-compose -p foo up
 ```
 
+### --project-directory
+
+status: open
+
+source:
+```
+docker compose --project-directory . up
+```
+target:
+```
+apptainer-compose --project-directory . up
+```
+
 ### --profile
 
 status: not implemented
