@@ -1119,7 +1119,7 @@ class Reader:
                     else:
                         break
                 item = line[self.indentation:]
-                if item.startswith("x-") or item.startswith("#"):
+                if item.startswith("#"):
                     continue
                 if item.startswith("- "):
                     item = item[2:]
@@ -1238,6 +1238,12 @@ def state_security_opt(r, d):
     return helper_add_list(r, d, None)
 
 
+def state_x_apptainer(r, d):
+    if r.yn.value in ["writable-tmpfs"]:
+        r.yn.value = "--" + r.yn.value
+    return helper_add_list(r, d, None)
+
+
 def state_service(r, d):
     if r.yn.key == "build":
         return helper_take_value_or_recurse(r, d, state_build, "build")
@@ -1269,6 +1275,8 @@ def state_service(r, d):
         return helper_add_dict(r, d, None, "read_only")
     elif r.yn.key == "init":
         return helper_add_dict(r, d, None, "init")
+    elif r.yn.key == "x-apptainer":
+        return helper_add_dict(r, d, state_x_apptainer, "x-apptainer")
     else:
         raise ParsingError()
 
@@ -1290,6 +1298,9 @@ def command_to_list(d_service, args):
             l.append("exec")
         else:
             l.append("run")
+    x_apptainer = d_service.get("x-apptainer")
+    if x_apptainer:
+        l += x_apptainer
     for vol in d_service.get("volumes", []):
         l += ["--bind", vol]
     environment = d_service.get("environment")

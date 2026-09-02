@@ -82,13 +82,14 @@ def create_test_case_data(
     example_source,
     example_target,
 ):
-    kind_list = ["parsing", "execution"]
+    if example_section == "compose_yaml":
+        kind_list = ["parsing", "execution"]
     if example_section == "docker_compose_cli":
         kind_list = ["execution"]
         example_source = example_source[:-1]
         example_source = example_source.replace("docker compose", "docker-compose")
     if example_section == "apptainer_cli":
-        return
+        kind_list = ["parsing"]
     for kind in kind_list:
         test_folder_parsing = "test_cases/" + example_section + "/" + kind + "/" + example_case_id
         if example_section == "compose_yaml" and kind == "execution":
@@ -174,7 +175,7 @@ def create_test_files():
     os.makedirs(test_case_folder_all)
     for test_case in test_case_list:
         os.makedirs(test_case.folder)
-        if test_case.section == "compose_yaml":
+        if test_case.section == "compose_yaml" or test_case.section == "apptainer_cli":
             with open(test_case.folder + "/compose.yaml", "w") as f:
                 f.write(test_case.source)
         if test_case.section == "docker_compose_cli":
@@ -275,6 +276,10 @@ class Test(unittest.TestCase):
     def test_3_docker_compose_cli_execution(self):
         print_separator("test_3_docker_compose_cli_execution")
         self.step_through_and_execute_tests("docker_compose_cli", "execution")
+
+    def test_4_apptainer_cli_parsing(self):
+        print_separator("test_4_apptainer_cli_parsing")
+        self.step_through_and_execute_tests("apptainer_cli", "parsing")
 
     @classmethod
     def tearDownClass(cls):
