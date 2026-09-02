@@ -272,8 +272,8 @@ class Test(unittest.TestCase):
         print_separator("test_2_compose_yaml_execution")
         self.step_through_and_execute_tests("compose_yaml", "execution")
 
-    def test_3_compose_cli_execution(self):
-        print_separator("test_3_compose_cli_execution")
+    def test_3_docker_compose_cli_execution(self):
+        print_separator("test_3_docker_compose_cli_execution")
         self.step_through_and_execute_tests("docker_compose_cli", "execution")
 
     @classmethod
