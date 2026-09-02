@@ -163,6 +163,24 @@ target:
 apptainer run docker://alpine:latest echo success
 ```
 
+### services:\<service>:environment_list
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    command: sh -c 'if [ "$$FOO" = "BAR" ]; then echo success; else echo failure; fi'
+    environment:
+      - FOO=BAR
+```
+target:
+```
+apptainer run --env FOO='BAR' docker://alpine:latest sh -c if [ "$FOO" = "BAR" ]; then echo success; else echo failure; fi
+```
+
 ### version
 
 status: tests passed

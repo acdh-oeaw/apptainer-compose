@@ -1213,6 +1213,13 @@ def state_volumes(r, d):
 
 
 def state_environment(r, d):
+    if r.yn.key is None:
+        key, sep, value = r.yn.value.partition("=")
+        if sep:
+            value = value.replace("\"", "").replace("'", "")
+        d = helper_set_up_list(d)
+        d.append((key, value if sep else None))
+        return d
     r.yn.value = r.yn.value.replace("\"", "").replace("'", "")
     return helper_add_dict(r, d, None, None)
 
@@ -1284,7 +1291,9 @@ def command_to_list(d_service, args):
         l += ["--bind", vol]
     environment = d_service.get("environment")
     if environment:
-        for k, v in environment.items():
+        if isinstance(environment, dict):
+            environment = list(environment.items())
+        for k, v in environment:
             if v is not None:
                 l += ["--env", k + "=" + v]
     hostname = d_service.get("hostname")

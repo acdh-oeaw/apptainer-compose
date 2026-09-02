@@ -1,0 +1,6 @@
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    command: sh -c 'if [ "$$FOO" = "BAR" ]; then echo success; else echo failure; fi'
+    environment:
+      - FOO=BAR
