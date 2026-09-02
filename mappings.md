@@ -128,6 +128,23 @@ target:
 apptainer run --security no_new_privs docker://alpine:latest sh -c if grep -Eq "NoNewPrivs:[[:space:]]1" /proc/self/status; then echo success; else echo failure; fi
 ```
 
+### services:\<service>:entrypoint
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    entrypoint: sh
+    command: -c 'if [ -n "$$0" ]; then echo success; else echo failure; fi'
+```
+target:
+```
+apptainer exec docker://alpine:latest sh -c if [ -n "$0" ]; then echo success; else echo failure; fi
+```
+
 ### networks
 
 status: not implemented

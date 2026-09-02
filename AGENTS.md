@@ -25,8 +25,8 @@ Translation of docker-compose to apptainer CLI, where possible.
 
 - `Reader` yields `YamlNode(indentation, key, value, is_list_item)`; skips blank lines, `#` comments, and `x-`-prefixed keys; `- ` marks list items. `get_key_value` splits `key: value` (bare `key:` → value None).
 - `recurse(r, func)` is indentation-driven recursive descent: calls `func(r, d)` for each node at the current indent, returns when indentation decreases.
-- State chain: `state_root` (expects `services`) → `state_services` → `state_service` (key dispatch; **unknown key raises ParsingError** — add new keys here) → `state_build` (`context`, `dockerfile`), `state_volumes` / `state_dns` / `state_security_opt` (list of strings), `state_environment` (dict, quotes stripped); scalar keys (`image`, `command`, `hostname`, `working_dir`) stored directly.
-- `command_to_list`: `apptainer run` + `--bind <vol>` per volume + `--env K=V` per env (None values skipped) + `--hostname H` + `--cwd D` (working_dir) + `--dns a,b` (comma-joined) + `--security no_new_privs` (per `security_opt: no-new-privileges`) + `docker://<image>` + command list (command is `shlex.split` of the raw value after compose `$$`→`$` interpolation).
+- State chain: `state_root` (expects `services`) → `state_services` → `state_service` (key dispatch; **unknown key raises ParsingError** — add new keys here) → `state_build` (`context`, `dockerfile`), `state_volumes` / `state_dns` / `state_security_opt` (list of strings), `state_environment` (dict, quotes stripped); scalar keys (`image`, `hostname`, `working_dir`) stored directly; `command` / `entrypoint` are `shlex.split` of the raw value after compose `$$`→`$` interpolation.
+- `command_to_list`: `apptainer run` (or `apptainer exec` if the service sets `entrypoint`) + `--bind <vol>` per volume + `--env K=V` per env (None values skipped) + `--hostname H` + `--cwd D` (working_dir) + `--dns a,b` (comma-joined) + `--security no_new_privs` (per `security_opt: no-new-privileges`) + `docker://<image>` + entrypoint list (if set) + command list.
 - `command_to_str`: same, but `--env` rendered as `K='V'` — this is what parsing tests compare against `target`.
 - `execute()` prints the command (`flush=True` — required, see harness contract) then `subprocess.run` of the list.
 
@@ -61,7 +61,7 @@ Run from the `tests/` directory (relative paths): `python3 -m unittest test_all 
 
 ## Baseline (2026-09-01)
 
-- 16/16 subTests pass (unittest reports `Ran 2 tests ... OK`). Implemented cases all green: `command`, `environment`, `volumes`, `hostname` (`--hostname`), `working_dir` (`--cwd`), `dns` (`--dns`, comma-joined), `security_opt` (`no-new-privileges` → `--security no_new_privs`).
+- 18/18 subTests pass (unittest reports `Ran 2 tests ... OK`). Implemented cases all green: `command`, `environment`, `volumes`, `hostname` (`--hostname`), `working_dir` (`--cwd`), `dns` (`--dns`, comma-joined), `security_opt` (`no-new-privileges` → `--security no_new_privs`), `entrypoint` (service `entrypoint` → verb switches `run` → `exec`, entrypoint list prepended before the command).
 - Compose `$$`→`$` interpolation is applied in `command` parsing (before `shlex.split`) — this makes the harness-injected `$$FOO` self-check in `services_service_environment` pass.
 - **Blacklist (persisted in mappings.md as `status: not implemented`, do not implement):** `networks` (apptainer has no container networks), `ports` (no port forwarding), `user` (no `--user` flag — `-u` is `--userns`), `tmpfs` (apptainer `--writable-tmpfs` takes no path; it is a whole-FS writable overlay), `pid` (compose only allows `pid: host`, which is already the apptainer default → vacuous), `mem_limit`/`cpus`/`cpuset` (cgroup features — `--memory`/`--cpus`/`--cpuset-*` need cgroup access, fail unprivileged: dbus "No such file or directory").
 

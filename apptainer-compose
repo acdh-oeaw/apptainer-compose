@@ -1234,6 +1234,10 @@ def state_service(r, d):
         return helper_add_dict(r, d, None, "command")
     elif r.yn.key == "image":
         return helper_add_dict(r, d, None, "image")
+    elif r.yn.key == "entrypoint":
+        r.yn.value = r.yn.value.replace("$$", "$")
+        r.yn.value = shlex.split(r.yn.value)
+        return helper_add_dict(r, d, None, "entrypoint")
     elif r.yn.key == "volumes":
         return helper_add_dict(r, d, state_volumes, "volumes")
     elif r.yn.key == "environment":
@@ -1261,7 +1265,10 @@ def state_root(r, d):
 def command_to_list(d_service, args):
     l = ["apptainer"]
     if args.COMMAND == "up":
-        l.append("run")
+        if d_service.get("entrypoint"):
+            l.append("exec")
+        else:
+            l.append("run")
     for vol in d_service.get("volumes", []):
         l += ["--bind", vol]
     environment = d_service.get("environment")
@@ -1288,6 +1295,9 @@ def command_to_list(d_service, args):
     image = d_service.get("image")
     if image:
         l.append("docker://" + image)
+    entrypoint = d_service.get("entrypoint")
+    if entrypoint:
+        l += entrypoint
     command = d_service.get("command")
     if command:
         l += command
