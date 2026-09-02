@@ -1388,6 +1388,7 @@ def parse_args():
     up_parser.add_argument("--no-recreate", action="store_true", help="do not recreate containers")
     up_parser.add_argument("--force-recreate", action="store_true", help="recreate containers")
     up_parser.add_argument("--always-recreate-deps", action="store_true", help="recreate dependent containers")
+    up_parser.add_argument("--remove-orphans", action="store_true", help="remove containers for undefined services")
     subparsers.add_parser("build", help="Stop services")
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")

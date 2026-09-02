@@ -792,6 +792,19 @@ target:
 apptainer-compose up --always-recreate-deps
 ```
 
+### --remove-orphans
+
+status: open
+
+source:
+```
+docker compose up --remove-orphans
+```
+target:
+```
+apptainer-compose up --remove-orphans
+```
+
 ### --profile
 
 status: not implemented
