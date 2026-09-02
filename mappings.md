@@ -198,6 +198,23 @@ target:
 apptainer run --writable-tmpfs docker://alpine:latest sh -c if touch /tmp/x; then echo success; else echo failure; fi
 ```
 
+### services:\<service>:init
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    init: false
+    command: echo success
+```
+target:
+```
+apptainer run --no-init docker://alpine:latest echo success
+```
+
 ### version
 
 status: tests passed

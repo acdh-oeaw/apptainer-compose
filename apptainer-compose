@@ -1265,6 +1265,8 @@ def state_service(r, d):
         return helper_add_dict(r, d, state_security_opt, "security_opt")
     elif r.yn.key == "read_only":
         return helper_add_dict(r, d, None, "read_only")
+    elif r.yn.key == "init":
+        return helper_add_dict(r, d, None, "init")
     else:
         raise ParsingError()
 
@@ -1317,6 +1319,9 @@ def command_to_list(d_service, args):
     read_only = d_service.get("read_only")
     if read_only == "false":
         l += ["--writable-tmpfs"]
+    init = d_service.get("init")
+    if init == "false":
+        l += ["--no-init"]
     image = d_service.get("image")
     if image:
         l.append("docker://" + image)
