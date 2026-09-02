@@ -1378,6 +1378,7 @@ def parse_args():
     up_parser.add_argument("--pull", help="pull policy")
     up_parser.add_argument("--quiet-pull", action="store_true", help="quiet pull")
     up_parser.add_argument("--build", action="store_true", help="build before starting")
+    up_parser.add_argument("--no-build", action="store_true", help="do not build")
     subparsers.add_parser("build", help="Stop services")
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")
