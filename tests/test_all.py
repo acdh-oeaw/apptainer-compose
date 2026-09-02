@@ -52,6 +52,7 @@ test_case_list = []
 
 
 def modify_compose_yaml_for_execution(example_section, example_case, example_source):
+    # TODO: implement custom tests here for new execuition tests, and update agent on this
     example_source_new = example_source
     if example_section == "compose_yaml":
         example_source_split = example_source.split("\n")
@@ -81,11 +82,15 @@ def create_test_case_data(
     example_source,
     example_target,
 ):
-    if example_section != "compose_yaml": # TODO: remove temporary test restriction
+    kind_list = ["parsing", "execution"]
+    if example_section == "docker_compose_cli":
+        kind_list = ["execution"]
+        example_source = example_source[:-1]
+    if example_section == "apptainer_cli":
         return
-    for kind in ["parsing", "execution"]:
+    for kind in kind_list:
         test_folder_parsing = "test_cases/" + example_section + "/" + kind + "/" + example_case_id
-        if kind == "execution":
+        if example_section == "compose_yaml" and kind == "execution":
             example_source = modify_compose_yaml_for_execution(
                 example_section,
                 example_case_id,
@@ -119,7 +124,9 @@ def extract_test_data():
             if example_section:
                 if line.startswith("### "):
                     example_case_name = line
-                    example_case_id = line[4:-1].replace(":\\<", "_").replace(">:", "_")
+                    example_case_id = (
+                        line[4:-1].replace(":\\<", "_").replace(">:", "_").replace("-", "_")
+                    )
             if example_case_id:
                 if line.startswith("status: "):
                     if line.endswith("not implemented"):
@@ -160,10 +167,22 @@ def create_test_files():
     shutil.rmtree(test_case_folder_all, ignore_errors=True)
     os.makedirs(test_case_folder_all)
     for test_case in test_case_list:
+        os.makedirs(test_case.folder)
         if test_case.section == "compose_yaml":
-            os.makedirs(test_case.folder)
             with open(test_case.folder + "/compose.yaml", "w") as f:
                 f.write(test_case.source)
+        if test_case.section == "docker_compose_cli":
+            file_name = "compose.yaml"
+            if test_case.id == "_f":
+                file_name = test_case.source.split(" -f ")[1].split(" ")[0]
+            with open(test_case.folder + "/" + file_name, "w") as f:
+                s = (
+                    "services:\n"
+                    "  apptainer_compose_test:\n"
+                    "    image: alpine:latest\n"
+                    "    command: echo success\n"
+                )
+                f.write(s)
 
 
 def print_separator(title=None):
@@ -197,29 +216,32 @@ class Test(unittest.TestCase):
         print(f"{parsed_command=}")
         return self.evaluate_and_assert(parsed_command, test_case_target)
 
-    def execute_apptainer(self):
-        result = subprocess.run(
-            ["../../../../../apptainer-compose", "up"], capture_output=True, text=True
-        )
+    def execute_apptainer(self, command):
+        command = command.split(" ")
+        result = subprocess.run(command, capture_output=True, text=True)
         print(f"{result.stderr=}")
         print(f"{result.stdout=}")
         outcome = result.stdout.split("\n")[1]
         return self.evaluate_and_assert(outcome, "success")
 
-    def execute_docker(self):
-        result = subprocess.run(["docker-compose", "up"], capture_output=True, text=True)
+    def execute_docker(self, command):
+        command = command.split(" ")
+        result = subprocess.run(command, capture_output=True, text=True)
         print(f"{result.stderr=}")
         print(f"{result.stdout=}")
         out_split = result.stdout.split("\n")
         outcome = out_split[1].split(" | ")[1]
         return self.evaluate_and_assert(outcome, "success")
 
-    def execute_test(self):
-        evaluation_1 = self.execute_apptainer()
-        evaluation_2 = self.execute_docker()
+    def execute_test(self, command_apptainer, command_docker):
+        evaluation_1 = self.execute_apptainer(command_apptainer)
+        evaluation_2 = self.execute_docker(command_docker)
         return evaluation_1 and evaluation_2
 
     def step_through_and_execute_tests(self, test_section_selected, test_kind_selected):
+        if test_section_selected == "compose_yaml":
+            command_apptainer = "../../../../../apptainer-compose up"
+            command_docker = "docker-compose up"
         for test_case in test_case_list:
             if test_case.section == test_section_selected and test_case.kind == test_kind_selected:
                 print_separator(test_case.folder)
@@ -228,7 +250,10 @@ class Test(unittest.TestCase):
                     if test_kind_selected == "parsing":
                         test_case.evaluation = self.parse_test(test_case.target)
                     elif test_kind_selected == "execution":
-                        test_case.evaluation = self.execute_test()
+                        if test_section_selected == "docker_compose_cli":
+                            command_apptainer = "../../../../../" + test_case.target
+                            command_docker = test_case.source
+                        test_case.evaluation = self.execute_test(command_apptainer, command_docker)
                 os.chdir("../../../../")
 
     def test_1_compose_yaml_parsing(self):
@@ -238,6 +263,10 @@ class Test(unittest.TestCase):
     def test_2_compose_yaml_execution(self):
         print_separator("test_2_compose_yaml_execution")
         self.step_through_and_execute_tests("compose_yaml", "execution")
+
+    def test_3_compose_cli_execution(self):
+        print_separator("test_3_compose_cli_execution")
+        self.step_through_and_execute_tests("docker_compose_cli", "execution")
 
     @classmethod
     def tearDownClass(cls):

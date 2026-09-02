@@ -493,7 +493,7 @@ More of an orchestration feature, with less relevance for apptainer
 
 ### up
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -506,7 +506,7 @@ apptainer-compose up
 
 ### -f
 
-status: open
+status: tests passed
 
 source:
 ```
@@ -515,19 +515,6 @@ docker compose -f foo.yaml up
 target:
 ```
 apptainer-compose -f foo.yaml up
-```
-
-### --dry-run
-
-status: open
-
-source:
-```
-docker compose --dry-run up
-```
-target:
-```
-apptainer-compose --dry-run up
 ```
 
 ## apptainer cli
