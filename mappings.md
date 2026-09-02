@@ -688,6 +688,19 @@ target:
 apptainer-compose up --quiet-build
 ```
 
+### --abort-on-container-exit
+
+status: open
+
+source:
+```
+docker compose up --abort-on-container-exit
+```
+target:
+```
+apptainer-compose up --abort-on-container-exit
+```
+
 ### --profile
 
 status: not implemented
