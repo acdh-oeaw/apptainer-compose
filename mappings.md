@@ -889,6 +889,113 @@ status: not implemented
 
 activates compose profiles; the profiles feature itself is blacklisted in the compose yaml section, so there is nothing to select
 
+### --menu
+
+status: not implemented
+
+interactive TTY feature; non-interactive stdout is unreliable (success line sometimes missing), so the harness cannot assert it. The flag itself is accepted by `parse_args` for drop-in compatibility
+
+<details>
+<summary>not implemented</summary>
+
+### --dry-run
+
+status: not implemented
+
+`docker compose up --dry-run` is rejected in v2.40 ("interactive run is not supported in dry-run mode"), so it is untestable. `apptainer-compose --dry-run` is its own, working flag
+
+### --env-file
+
+status: not implemented
+
+untestable: the file must exist in the case folder, but the frozen harness only writes `compose.yaml`
+
+### --timestamps
+
+status: not implemented
+
+untestable: prefixes the success line with a timestamp, breaking the harness' ` | success` assertion
+
+### -d
+
+status: not implemented
+
+untestable: detached mode prints no ` | success` line to stdout
+
+### --wait
+
+status: not implemented
+
+untestable: implies detached mode and errors when the service exits (the fixture exits immediately)
+
+### --no-start
+
+status: not implemented
+
+untestable: containers are created but never started, so no ` | success` line
+
+### --no-log-prefix
+
+status: not implemented
+
+untestable: removes the `name | ` prefix the harness asserts on
+
+### -w
+
+status: not implemented
+
+untestable: watch mode never exits
+
+### run
+
+status: not implemented
+
+untestable: `docker compose run` prints raw container stdout without the `name | ` prefix the harness asserts on. The subcommand itself is accepted by `parse_args` for drop-in compatibility
+
+### start, stop, restart, pause, unpause, down, kill, rm
+
+status: not implemented
+
+lifecycle of persistent containers, which apptainer has none of (one-shot runs); no ` | success` line on stdout
+
+### ps, logs, top, stats, events, ls, images, volumes
+
+status: not implemented
+
+inspection of running projects/containers, which apptainer has none of; no ` | success` line on stdout
+
+### pull, config, version
+
+status: not implemented
+
+print non-container output (pull status / rendered yaml / version string); no ` | success` line on stdout. SIF caching is automatic in apptainer
+
+### exec, create, cp, export, commit
+
+status: not implemented
+
+operations on persistent containers, which apptainer has none of (one-shot runs)
+
+### port
+
+status: not implemented
+
+no port forwarding (`ports` is blacklisted in the compose yaml section)
+
+### scale
+
+status: not implemented
+
+no multi-instance orchestration
+
+### bridge, publish
+
+status: not implemented
+
+no apptainer counterpart
+
+</details>
+
 ## apptainer cli
 
 This set covers functionalities of the apptainer CLI and how they are
