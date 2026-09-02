@@ -1165,7 +1165,7 @@ def helper_add_dict(r, d, func, key):
     d = helper_set_up_dict(d)
     if key is None:
         key = r.yn.key
-    elif key != r.ny.key:
+    elif key != r.yn.key:
         raise ParsingError()
     if func is None:
         d[key] = r.yn.value
