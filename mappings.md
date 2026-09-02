@@ -145,6 +145,24 @@ target:
 apptainer exec docker://alpine:latest sh -c if [ -n "$0" ]; then echo success; else echo failure; fi
 ```
 
+### services:\<service>:labels
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    command: echo success
+    labels:
+      com.example.apptainer-compose: test
+```
+target:
+```
+apptainer run docker://alpine:latest echo success
+```
+
 ### networks
 
 status: not implemented

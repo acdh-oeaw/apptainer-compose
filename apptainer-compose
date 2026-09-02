@@ -1221,6 +1221,10 @@ def state_dns(r, d):
     return helper_add_list(r, d, None)
 
 
+def state_labels(r, d):
+    return helper_add_dict(r, d, None, None)
+
+
 def state_security_opt(r, d):
     return helper_add_list(r, d, None)
 
@@ -1248,6 +1252,8 @@ def state_service(r, d):
         return helper_add_dict(r, d, None, "working_dir")
     elif r.yn.key == "dns":
         return helper_add_dict(r, d, state_dns, "dns")
+    elif r.yn.key == "labels":
+        return helper_add_dict(r, d, state_labels, "labels")
     elif r.yn.key == "security_opt":
         return helper_add_dict(r, d, state_security_opt, "security_opt")
     else:
