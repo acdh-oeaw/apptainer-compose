@@ -547,7 +547,7 @@ apptainer-compose up apptainer_compose_test
 
 ### -p
 
-status: open
+status: tests passed
 
 source:
 ```
