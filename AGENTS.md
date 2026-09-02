@@ -12,6 +12,7 @@ Translation of docker-compose to apptainer CLI, where possible.
 - **Extension area:** inject new `state_*` functions + dispatch branches in `state_service` / `state_build`, and extend `command_to_list` / `command_to_str` for new CLI flags. New test cases go into `mappings.md` first.
 - Never use `tests/test_individual.py` or `tmp_parsing_refactoring_test/` — temporary artifacts, already removed. Only `tests/test_all.py` is the test entry point.
 - **Auto-commit & push:** commit changes as work completes and push to `origin` — do not wait to be asked (one commit per logical change, message style `<file>: <description>`).
+- **Never truncate test output:** run the suite without `head`/`tail`/`grep`-style filtering — read the full output to judge results.
 
 ## File map
 
