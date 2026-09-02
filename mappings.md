@@ -623,6 +623,19 @@ target:
 apptainer-compose --all-resources up
 ```
 
+### --pull
+
+status: open
+
+source:
+```
+docker compose up --pull never
+```
+target:
+```
+apptainer-compose up --pull never
+```
+
 ### --profile
 
 status: not implemented
