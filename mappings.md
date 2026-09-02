@@ -870,6 +870,19 @@ target:
 apptainer-compose up --no-attach apptainer_compose_test
 ```
 
+### --scale
+
+status: open
+
+source:
+```
+docker compose up --scale apptainer_compose_test=1
+```
+target:
+```
+apptainer-compose up --scale apptainer_compose_test=1
+```
+
 ### --profile
 
 status: not implemented
