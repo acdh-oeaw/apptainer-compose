@@ -1363,6 +1363,7 @@ def parse_args():
     parser.add_argument("--dry-run", action="store_true", help="dry run")
     subparsers = parser.add_subparsers(dest="COMMAND")
     up_parser = subparsers.add_parser("up", help="Start services")
+    up_parser.add_argument("service_name", nargs="*", help="Service name")
     subparsers.add_parser("build", help="Stop services")
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")
@@ -1403,7 +1404,14 @@ def main():
             d_service["command"] = list(args.run_command)
         execute(d_service, args)
         return
-    for d_service in d["services"].values():
+    services = d["services"]
+    if args.COMMAND == "up" and args.service_name:
+        for name in args.service_name:
+            if name not in services:
+                print(f"service {name} not found", file=sys.stderr)
+                sys.exit(1)
+        services = {name: services[name] for name in services if name in args.service_name}
+    for d_service in services.values():
         if d_service.get("profiles"):
             continue
         execute(d_service, args)
