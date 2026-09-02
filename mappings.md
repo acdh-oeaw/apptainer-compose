@@ -857,6 +857,19 @@ target:
 apptainer-compose up --attach apptainer_compose_test
 ```
 
+### --no-attach
+
+status: open
+
+source:
+```
+docker compose up --no-attach apptainer_compose_test
+```
+target:
+```
+apptainer-compose up --no-attach apptainer_compose_test
+```
+
 ### --profile
 
 status: not implemented

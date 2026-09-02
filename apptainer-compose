@@ -1393,6 +1393,7 @@ def parse_args():
     up_parser.add_argument("-t", "--timeout", help="shutdown timeout in seconds")
     up_parser.add_argument("-y", "--yes", action="store_true", help="assume yes to prompts")
     up_parser.add_argument("--attach", help="restrict attaching to specified services")
+    up_parser.add_argument("--no-attach", help="do not attach to specified services")
     subparsers.add_parser("build", help="Stop services")
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")
