@@ -252,6 +252,9 @@ target:
 apptainer run docker://alpine:latest echo success
 ```
 
+<details>
+<summary>not implemented</summary>
+
 ### networks
 
 status: not implemented
@@ -497,3 +500,5 @@ apptainer --dns accepts only server addresses, not search domains or options
 status: not implemented
 
 cgroup features; --pids-limit exists but needs cgroup access (fails unprivileged, like mem_limit/cpus/cpuset), and the cpu_rt_*/mem_swappiness options have no apptainer flag at all
+
+</details>
