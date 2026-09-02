@@ -27,9 +27,9 @@ Translation of docker-compose to apptainer CLI, where possible.
 - `Reader` yields `YamlNode(indentation, key, value, is_list_item)`; skips blank lines, `#` comments, and `x-`-prefixed keys; `- ` marks list items. `get_key_value` splits `key: value` (bare `key:` → value None).
 - `recurse(r, func)` is indentation-driven recursive descent: calls `func(r, d)` for each node at the current indent, returns when indentation decreases.
 - State chain: `state_root` (expects `services`; top-level `version` is accepted and ignored — consumed so the frozen `recurse` loop keeps advancing) → `state_services` → `state_service` (key dispatch; **unknown key raises ParsingError** — add new keys here) → `state_build` (`context`, `dockerfile`), `state_volumes` / `state_dns` / `state_security_opt` (list of strings), `state_environment` (dict **or** list of `KEY=VALUE`, quotes stripped — list items are detected by `key is None`, **not** `is_list_item`: the frozen Reader's `is_list_item` flag is sticky, set permanently once any `- ` line was seen), `state_labels` (dict, stored but **ignored** — no CLI flag); scalar keys (`image`, `hostname`, `working_dir`, `read_only`) stored directly; `command` / `entrypoint` are `shlex.split` of the raw value after compose `$$`→`$` interpolation.
-- `command_to_list`: `apptainer run` (or `apptainer exec` if the service sets `entrypoint`) + `--bind <vol>` per volume + `--env K=V` per env (dict or list form, None values skipped) + `--hostname H` + `--cwd D` (working_dir) + `--dns a,b` (comma-joined) + `--security no_new_privs` (per `security_opt: no-new-privileges`) + `--writable-tmpfs` (per `read_only: false` — apptainer's rootfs is read-only by default, docker's is writable) + `docker://<image>` + entrypoint list (if set) + command list.
+- `command_to_list`: `apptainer run` (or `apptainer exec` if the service sets `entrypoint`; same for the `run` subcommand) + `--bind <vol>` per volume + `--env K=V` per env (dict or list form, None values skipped) + `--hostname H` + `--cwd D` (working_dir) + `--dns a,b` (comma-joined) + `--security no_new_privs` (per `security_opt: no-new-privileges`) + `--writable-tmpfs` (per `read_only: false` — apptainer's rootfs is read-only by default, docker's is writable) + `docker://<image>` + entrypoint list (if set) + command list.
 - `command_to_str`: same, but `--env` rendered as `K='V'` — this is what parsing tests compare against `target`.
-- `execute()` prints the command (`flush=True` — required, see harness contract) then `subprocess.run` of the list.
+- `execute()` prints the command (`flush=True` — required, see harness contract), then `subprocess.run` of the list unless `--dry-run` (prints only); a non-zero child exit code is propagated via `sys.exit`.
 
 ## Test harness (tests/test_all.py, frozen)
 
@@ -73,8 +73,7 @@ Run from the `tests/` directory (relative paths): `python3 -m unittest test_all 
 - `Reader.is_list_item` is **sticky**: once any `- ` line is seen, every following node carries `is_list_item=True` (the frozen generator never resets it). Never use it to detect list items — use `key is None` instead.
 - `working_dir` → `--cwd` requires the directory to **exist** in the image (apptainer does not create it, unlike docker).
 - `hostname` values must be RFC-valid (no underscores — apptainer rejects `foo_bar` as "not a valid hostname").
-- `--dry-run` is parsed but never honored — `execute()` always runs the command.
 - `build:` is parsed but unused in command generation (no Dockerfile→sif flow wired into `up` yet).
-- `main()` executes **all** services sequentially.
+- `main()`: `up` executes **all** services sequentially; `run <service> [cmd...]` executes only that service, with `cmd` overriding its `command` (use `--` before commands that start with `-`), unknown service → error exit 1.
 - Parsing test only checks the **first** service of a file.
 - `Reader` skips any line starting with `x-` (compose extension fields) — so `x-` keys never reach the states.

@@ -1284,7 +1284,7 @@ def state_root(r, d):
 
 def command_to_list(d_service, args):
     l = ["apptainer"]
-    if args.COMMAND == "up":
+    if args.COMMAND in ("up", "run"):
         if d_service.get("entrypoint"):
             l.append("exec")
         else:
@@ -1373,13 +1373,26 @@ def parse_compose(args):
 
 def execute(d_service, args):
     print(command_to_str(d_service, args), flush=True)
+    if args.dry_run:
+        return
     cmd_as_list = command_to_list(d_service, args)
-    subprocess.run(cmd_as_list)
+    result = subprocess.run(cmd_as_list)
+    if result.returncode != 0:
+        sys.exit(result.returncode)
 
 
 def main():
     args = parse_args()
     d = parse_compose(args)
+    if args.COMMAND == "run":
+        if args.service_name not in d["services"]:
+            print(f"service {args.service_name} not found", file=sys.stderr)
+            sys.exit(1)
+        d_service = d["services"][args.service_name]
+        if args.run_command:
+            d_service["command"] = list(args.run_command)
+        execute(d_service, args)
+        return
     for d_service in d["services"].values():
         execute(d_service, args)
 
