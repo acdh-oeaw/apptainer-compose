@@ -4,7 +4,21 @@
 
 ## how to use
 
-This code contains zero dependencies and is all contained in a single python script: [./apptainer_compose.py](apptainer-compose) . Thus, to use it, simply download that script and use it with `python apptainer_compose.py [args]`, where `[args]` tries to be as close as possible to docker compose args, e.g. `python apptainer_compose.py up`. You may also make it executable and add it to your`$PATH`, so that you can call it anywhere with `apptainer_compose.py [args]`.
+This code contains zero dependencies and is all contained in a single python script: 
+[apptainer-compose](./apptainer-compose) . 
+
+Download it and make it executable
+
+```
+chmod +x apptainer-compose
+```
+
+And add it to your `$PATH`
+
+## mappings
+
+All functionalities of docker compose and whether or not they are mapped to apptainer are described 
+here: [mappings.md](./mappings.md)
 
 ### acknowledgments
 
