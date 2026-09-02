@@ -1,0 +1,5 @@
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - uts

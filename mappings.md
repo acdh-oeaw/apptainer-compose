@@ -1019,3 +1019,378 @@ target:
 ```
 apptainer run --writable-tmpfs docker://alpine:latest
 ```
+
+### --cleanenv
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - cleanenv
+```
+target:
+```
+apptainer run --cleanenv docker://alpine:latest
+```
+
+### --compat
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - compat
+```
+target:
+```
+apptainer run --compat docker://alpine:latest
+```
+
+### --contain
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - contain
+```
+target:
+```
+apptainer run --contain docker://alpine:latest
+```
+
+### --containall
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - containall
+```
+target:
+```
+apptainer run --containall docker://alpine:latest
+```
+
+### --disable-cache
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - disable-cache
+```
+target:
+```
+apptainer run --disable-cache docker://alpine:latest
+```
+
+### --fakeroot
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - fakeroot
+```
+target:
+```
+apptainer run --fakeroot docker://alpine:latest
+```
+
+### --intel-hpu
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - intel-hpu
+```
+target:
+```
+apptainer run --intel-hpu docker://alpine:latest
+```
+
+### --ipc
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - ipc
+```
+target:
+```
+apptainer run --ipc docker://alpine:latest
+```
+
+### --no-eval
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - no-eval
+```
+target:
+```
+apptainer run --no-eval docker://alpine:latest
+```
+
+### --no-home
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - no-home
+```
+target:
+```
+apptainer run --no-home docker://alpine:latest
+```
+
+### --no-https
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - no-https
+```
+target:
+```
+apptainer run --no-https docker://alpine:latest
+```
+
+### --no-init
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - no-init
+```
+target:
+```
+apptainer run --no-init docker://alpine:latest
+```
+
+### --no-pid
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - no-pid
+```
+target:
+```
+apptainer run --no-pid docker://alpine:latest
+```
+
+### --no-privs
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - no-privs
+```
+target:
+```
+apptainer run --no-privs docker://alpine:latest
+```
+
+### --no-umask
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - no-umask
+```
+target:
+```
+apptainer run --no-umask docker://alpine:latest
+```
+
+### --nv
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - nv
+```
+target:
+```
+apptainer run --nv docker://alpine:latest
+```
+
+### --pid
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - pid
+```
+target:
+```
+apptainer run --pid docker://alpine:latest
+```
+
+### --rocm
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - rocm
+```
+target:
+```
+apptainer run --rocm docker://alpine:latest
+```
+
+### --unsquash
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - unsquash
+```
+target:
+```
+apptainer run --unsquash docker://alpine:latest
+```
+
+### --userns
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - userns
+```
+target:
+```
+apptainer run --userns docker://alpine:latest
+```
+
+### --uts
+
+status: tests passed
+
+source:
+```
+services:
+  apptainer_compose_test:
+    image: alpine:latest
+    x-apptainer:
+      - uts
+```
+target:
+```
+apptainer run --uts docker://alpine:latest
+```
+
+<details><summary>not implemented</summary>
+
+Single-word `apptainer run` flags that are valid CLI options but not mapped via
+`x-apptainer`, with the reason:
+
+- `--help` — meta flag, prints help and exits instead of running a container.
+- `--net` — container networking (bridge network), out of scope (apptainer has no container networks; see the `networks` blacklist).
+- `--passphrase` — interactive prompt (encryption passphrase), would hang automated execution.
+- `--docker-login` — interactive prompt (registry login), would hang automated execution.
+- `--allow-setuid` — root only, cannot work flawlessly unprivileged.
+- `--keep-privs` — root only, cannot work flawlessly unprivileged.
+- `--nvccli` — requires the `nvidia-container-cli` binary for GPU setup, not installed here.
+- `--oom-kill-disable` — cgroup feature, needs cgroup/dbus access, fails unprivileged (like the blacklisted cgroup features).
+- `--sharens` — cgroup feature, needs cgroup/dbus access, fails unprivileged (like the blacklisted cgroup features).
+- `--writable` — needs a SIF with a writable overlay partition; `docker://` images (converted on the fly) have none. Use `--writable-tmpfs` instead (already mapped).
+
+</details>

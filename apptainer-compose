@@ -1239,7 +1239,7 @@ def state_security_opt(r, d):
 
 
 def state_x_apptainer(r, d):
-    if r.yn.value in ["writable-tmpfs"]:
+    if not r.yn.value.startswith("-"):
         r.yn.value = "--" + r.yn.value
     return helper_add_list(r, d, None)
 
