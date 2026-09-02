@@ -1165,6 +1165,8 @@ def helper_add_dict(r, d, func, key):
     d = helper_set_up_dict(d)
     if key is None:
         key = r.yn.key
+    elif key != r.ny.key:
+        raise ParsingError()
     if func is None:
         d[key] = r.yn.value
     else:
@@ -1284,9 +1286,6 @@ def state_services(r, d):
 def state_root(r, d):
     if r.yn.key == "version":
         r.next()
-        if r.yn is not None and r.indentation == 0 and r.yn.key == "services":
-            return helper_add_dict(r, d, state_services, "services")
-        return d
     return helper_add_dict(r, d, state_services, "services")
 
 
