@@ -1,5 +1,5 @@
 
-There are three sets of functionalities to be mapped:
+Three sets of functionalities are mapped and described here:
 
 - [compose yaml](#compose-yaml)
 - [docker compose cli](#docker-compose-cli)
