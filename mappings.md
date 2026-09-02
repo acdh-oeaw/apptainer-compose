@@ -727,6 +727,19 @@ target:
 apptainer-compose up --exit-code-from apptainer_compose_test
 ```
 
+### --no-color
+
+status: open
+
+source:
+```
+docker compose up --no-color
+```
+target:
+```
+apptainer-compose up --no-color
+```
+
 ### --profile
 
 status: not implemented
