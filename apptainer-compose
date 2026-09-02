@@ -1390,6 +1390,7 @@ def parse_args():
     up_parser.add_argument("--always-recreate-deps", action="store_true", help="recreate dependent containers")
     up_parser.add_argument("--remove-orphans", action="store_true", help="remove containers for undefined services")
     up_parser.add_argument("-V", "--renew-anon-volumes", action="store_true", help="recreate anonymous volumes")
+    up_parser.add_argument("-t", "--timeout", help="shutdown timeout in seconds")
     subparsers.add_parser("build", help="Stop services")
     run_parser = subparsers.add_parser("run", help="Run custom command")
     run_parser.add_argument("service_name", help="Service name")

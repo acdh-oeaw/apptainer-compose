@@ -818,6 +818,19 @@ target:
 apptainer-compose up -V
 ```
 
+### -t
+
+status: open
+
+source:
+```
+docker compose up -t 5
+```
+target:
+```
+apptainer-compose up -t 5
+```
+
 ### --profile
 
 status: not implemented
