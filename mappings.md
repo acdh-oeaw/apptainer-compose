@@ -210,3 +210,9 @@ apptainer --cpus requires cgroup access, which fails unprivileged (dbus: No such
 status: not implemented
 
 apptainer --cpuset-cpus/--cpuset-mems require cgroup access, which fails unprivileged (dbus: No such file or directory)
+
+### depends_on
+
+status: not implemented
+
+apptainer is not about multi service orchestration; a faithful mapping would require health checks and more, which is not worth it
