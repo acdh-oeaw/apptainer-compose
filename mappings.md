@@ -649,6 +649,19 @@ target:
 apptainer-compose up --quiet-pull
 ```
 
+### --build
+
+status: open
+
+source:
+```
+docker compose up --build
+```
+target:
+```
+apptainer-compose up --build
+```
+
 ### --profile
 
 status: not implemented
