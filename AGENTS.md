@@ -13,6 +13,7 @@ Translation of docker-compose to apptainer CLI, where possible.
 - Never use `tests/test_individual.py` or `tmp_parsing_refactoring_test/` — temporary artifacts, already removed. Only `tests/test_all.py` is the test entry point.
 - **Auto-commit & push:** commit changes as work completes and push to `origin` — do not wait to be asked (one commit per logical change, message style `<file>: <description>`).
 - **Never truncate test output:** run the suite without `head`/`tail`/`grep`-style filtering — read the full output to judge results.
+- **Security is secondary:** apptainer does not aim for full isolation like docker — everything regarding security (caps, privileged, seccomp, IPC/UTS namespace control) is secondary. Do not invest in mapping it: `security_opt` supports only `no-new-privileges` (other values raise ParsingError by design), cap_add/cap_drop/privileged/ipc are blacklisted.
 
 ## File map
 
