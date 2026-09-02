@@ -16,8 +16,8 @@ Each status can be one of:
 
 ## compose yaml
 
-This set covers purely the contents of docker compose yaml files and what their
-mapped apptainer equivalents are.
+This set covers the contents of docker compose yaml files and what their mapped
+`apptainer-compose` equivalents are.
 
 ### services:\<service>:volumes
 
@@ -503,8 +503,8 @@ More of an orchestration feature, with less relevance for apptainer
 
 ## docker compose cli
 
-This set functionalities of the docker compose CLI and their apptaincer-compose
-equivalents.
+This set covers functionalities of the `docker compose` CLI and their 
+`apptaincer-compose` equivalents.
 
 ### up
 
@@ -555,8 +555,8 @@ activates compose profiles; the profiles feature itself is blacklisted in the co
 
 This set covers functionalities of the apptainer CLI and how they are
 represented within compose yaml files with the `x-apptainer` key. Note that
-the apptainer-compose CLI does not support any apptainer CLI as that might
-conflict with the docker compose CLI.
+the `apptainer-compose` CLI does not support any `apptainer` CLI features
+as some conflict with the `docker compose` CLI.
 
 ### --writable-tmpfs
 
